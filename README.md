@@ -44,6 +44,7 @@ These projects have been tested with CDK version 1.0.0
 4. Notebook instanes for teams; multiple notebook instances with a common EFS volume, all in the same VPC
 5. Set up retraining of model on cron schedule
 6. Real time inference using Kinesis topics as inputs
+7. Deploy model tagged as "production" based on config file 
 
 ## Work in progress
 
