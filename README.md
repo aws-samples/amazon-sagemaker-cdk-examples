@@ -1,5 +1,7 @@
 ![SageCDKops](SagecdkOpsLogo.png)
 
+### Please note that this is a work in progress and meant for use with a ML specialist SA in a workshop setting.
+
 ## Prerequisites
 
 ### First install CDK
