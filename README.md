@@ -49,6 +49,5 @@ These projects have been tested with CDK version 1.0.0
 ## Work in progress
 
 1. Set up dask on Fargate with Sagemaker notebooks for distributed preprocessing
-2. Create endpoint from model tagged as "prod"
-3. Dataset/ experiment/ model versioning
-4. PLEASE SUBMIT IDEA AS AN ISSUE
+2. Dataset/ experiment/ model versioning
+3. PLEASE SUBMIT IDEA AS AN ISSUE
