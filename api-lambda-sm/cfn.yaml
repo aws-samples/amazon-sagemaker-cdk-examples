@@ -1,0 +1,322 @@
+**** <aws_cdk.aws_apigateway.LambdaRestApi object at 0x10efb2470>
+Resources:
+  callsmlambdaServiceRole775CF7B4:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - lambda.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/ServiceRole/Resource
+  callsmlambdaServiceRoleDefaultPolicy8AFA4A73:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sagemaker:InvokeEndpoint
+            Effect: Allow
+            Resource: arn:aws:sagemaker:us-east-1:497456752804:endpoint/vehicle-damage-inspection-endpoint
+        Version: "2012-10-17"
+      PolicyName: callsmlambdaServiceRoleDefaultPolicy8AFA4A73
+      Roles:
+        - Ref: callsmlambdaServiceRole775CF7B4
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/ServiceRole/DefaultPolicy/Resource
+  callsmlambda7B504F1F:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          from botocore.vendored import requests
+          import os
+
+          def lambda_handler(event, context):
+              # TODO implement
+              
+              client = boto3.client('sagemaker-runtime')
+              
+              print("Calling Sagemaker endpoint")
+
+              response = client.invoke_endpoint(
+                  EndpointName=os.environ['endpoint_name'],
+                  Body=json.loads(event['body'])['data'],
+                  ContentType=os.environ['content_type'])
+              
+              return {
+                  'statusCode': 200,
+                  'body': json.loads(response['Body'].read())
+              }
+      Handler: index.lambda_handler
+      Role:
+        Fn::GetAtt:
+          - callsmlambdaServiceRole775CF7B4
+          - Arn
+      Runtime: python3.6
+      Environment:
+        Variables:
+          endpoint_name: vehicle-damage-inspection-endpoint
+          content_type: text/csv
+      Timeout: 300
+    DependsOn:
+      - callsmlambdaServiceRoleDefaultPolicy8AFA4A73
+      - callsmlambdaServiceRole775CF7B4
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/Resource
+  callsmlambdaApiPermissionANY7BBAAF2E:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - callsmlambda7B504F1F
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: callsmapiEC5B72E6
+            - /
+            - Ref: callsmapiDeploymentStageprodAB025546
+            - /*/
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/ApiPermission.ANY..
+  callsmlambdaApiPermissionTestANY682E428C:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - callsmlambda7B504F1F
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: callsmapiEC5B72E6
+            - /test-invoke-stage/*/
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/ApiPermission.Test.ANY..
+  callsmlambdaApiPermissionANYproxy1C2C4742:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - callsmlambda7B504F1F
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: callsmapiEC5B72E6
+            - /
+            - Ref: callsmapiDeploymentStageprodAB025546
+            - /*/{proxy+}
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/ApiPermission.ANY..{proxy+}
+  callsmlambdaApiPermissionTestANYproxy7F8BD2E1:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - callsmlambda7B504F1F
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: callsmapiEC5B72E6
+            - /test-invoke-stage/*/{proxy+}
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmlambda/ApiPermission.Test.ANY..{proxy+}
+  callsmapiEC5B72E6:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: callsmapi
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/Resource
+  callsmapiDeployment2CB7D91Bd4a19b8a7a4fa84b1f47f5410a76f405:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: callsmapiEC5B72E6
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - callsmapiproxyANYBAC63BA7
+      - callsmapiproxy4194946C
+      - callsmapiANY8B2E586F
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/Deployment/Resource
+  callsmapiDeploymentStageprodAB025546:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: callsmapiEC5B72E6
+      DeploymentId:
+        Ref: callsmapiDeployment2CB7D91Bd4a19b8a7a4fa84b1f47f5410a76f405
+      StageName: prod
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/DeploymentStage.prod/Resource
+  callsmapiCloudWatchRoleD19B8A62:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - apigateway.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/CloudWatchRole/Resource
+  callsmapiAccount692EE445:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - callsmapiCloudWatchRoleD19B8A62
+          - Arn
+    DependsOn:
+      - callsmapiEC5B72E6
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/Account
+  callsmapiproxy4194946C:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - callsmapiEC5B72E6
+          - RootResourceId
+      PathPart: "{proxy+}"
+      RestApiId:
+        Ref: callsmapiEC5B72E6
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/Default/{proxy+}/Resource
+  callsmapiproxyANYBAC63BA7:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Ref: callsmapiproxy4194946C
+      RestApiId:
+        Ref: callsmapiEC5B72E6
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - callsmlambda7B504F1F
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/Default/{proxy+}/ANY/Resource
+  callsmapiANY8B2E586F:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Fn::GetAtt:
+          - callsmapiEC5B72E6
+          - RootResourceId
+      RestApiId:
+        Ref: callsmapiEC5B72E6
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - callsmlambda7B504F1F
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: APILambdaSagemaker/callsmapi/Default/ANY/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=0.34.0,@aws-cdk/assets=0.34.0,@aws-cdk/assets-docker=0.34.0,@aws-cdk/aws-apigateway=0.34.0,@aws-cdk/aws-applicationautoscaling=0.34.0,@aws-cdk/aws-autoscaling=0.34.0,@aws-cdk/aws-autoscaling-common=0.34.0,@aws-cdk/aws-autoscaling-hooktargets=0.34.0,@aws-cdk/aws-certificatemanager=0.34.0,@aws-cdk/aws-cloudformation=0.34.0,@aws-cdk/aws-cloudfront=0.34.0,@aws-cdk/aws-cloudwatch=0.34.0,@aws-cdk/aws-codebuild=0.34.0,@aws-cdk/aws-codecommit=0.34.0,@aws-cdk/aws-codepipeline=0.34.0,@aws-cdk/aws-ec2=0.34.0,@aws-cdk/aws-ecr=0.34.0,@aws-cdk/aws-ecs=0.34.0,@aws-cdk/aws-elasticloadbalancing=0.34.0,@aws-cdk/aws-elasticloadbalancingv2=0.34.0,@aws-cdk/aws-events=0.34.0,@aws-cdk/aws-events-targets=0.34.0,@aws-cdk/aws-iam=0.34.0,@aws-cdk/aws-kms=0.34.0,@aws-cdk/aws-lambda=0.34.0,@aws-cdk/aws-logs=0.34.0,@aws-cdk/aws-route53=0.34.0,@aws-cdk/aws-route53-targets=0.34.0,@aws-cdk/aws-s3=0.34.0,@aws-cdk/aws-secretsmanager=0.34.0,@aws-cdk/aws-servicediscovery=0.34.0,@aws-cdk/aws-sns=0.34.0,@aws-cdk/aws-sqs=0.34.0,@aws-cdk/aws-stepfunctions=0.34.0,@aws-cdk/cdk=0.34.0,@aws-cdk/cx-api=0.34.0,@aws-cdk/region-info=0.34.0,jsii-runtime=Python/3.6.5
+Outputs:
+  callsmapiEndpointA1D50275:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: callsmapiEC5B72E6
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: callsmapiDeploymentStageprodAB025546
+          - /
+

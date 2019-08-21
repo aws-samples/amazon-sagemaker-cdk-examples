@@ -1,0 +1,7 @@
+aws-cdk.aws-events
+aws-cdk.aws-events-targets
+aws-cdk.aws-lambda
+aws-cdk.cdk
+aws-cdk.aws-iam
+aws-cdk.aws-kinesis
+aws-cdk.aws_lambda_event_sources

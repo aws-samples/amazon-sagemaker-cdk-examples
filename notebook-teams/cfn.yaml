@@ -1,0 +1,128 @@
+${Token[commonEFS4Notebooks.Ref.1]}
+${Token[MountID.attr_ip_address.16]}
+Adding following script to the lifecycle config..
+___
+
+#!/bin/bash
+
+cd /home/ec2-user/SageMaker/
+
+mkdir -p efs
+
+sudo yum install -y amazon-efs-utils
+
+sudo mount -t efs ${Token[commonEFS4Notebooks.Ref.1]}:/ efs
+
+sudo chmod go+rw ./efs
+Resources:
+  commonEFS4Notebooks:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: false
+      PerformanceMode: generalPurpose
+      ThroughputMode: bursting
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/commonEFS4Notebooks
+  MountID:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: commonEFS4Notebooks
+      SecurityGroups:
+        - sg-fc6b03b7
+      SubnetId: subnet-b08ee8bf
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/MountID
+  notebookAccessRoleFF9FFE8C:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - sagemaker.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/notebookAccessRole/Resource
+  notebookAccessPolicyFF100858:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: notebookAccessPolicy
+      Roles:
+        - Ref: notebookAccessRoleFF9FFE8C
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/notebookAccessPolicy/Resource
+  CDKLifeCycleConfig:
+    Type: AWS::SageMaker::NotebookInstanceLifecycleConfig
+    Properties:
+      NotebookInstanceLifecycleConfigName: CDKLifeCycleConfig
+      OnStart:
+        - Content:
+            Fn::Base64:
+              Fn::Join:
+                - ""
+                - - |-
+                    #!/bin/bash
+
+                    cd /home/ec2-user/SageMaker/
+
+                    mkdir -p efs
+
+                    sudo yum install -y amazon-efs-utils
+
+                    sudo mount -t efs 
+                  - Ref: commonEFS4Notebooks
+                  - |-
+                    :/ efs
+
+                    sudo chmod go+rw ./efs
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/CDKLifeCycleConfig
+  CDKNotebookInstanceUser0:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      InstanceType: ml.t2.medium
+      RoleArn:
+        Fn::GetAtt:
+          - notebookAccessRoleFF9FFE8C
+          - Arn
+      LifecycleConfigName: CDKLifeCycleConfig
+      NotebookInstanceName: CDK-Notebook-Instance-User-0
+      SecurityGroupIds:
+        - sg-fc6b03b7
+      SubnetId: subnet-b08ee8bf
+      VolumeSizeInGB: 5
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/CDK-Notebook-Instance-User-0
+  CDKNotebookInstanceUser1:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      InstanceType: ml.t2.medium
+      RoleArn:
+        Fn::GetAtt:
+          - notebookAccessRoleFF9FFE8C
+          - Arn
+      LifecycleConfigName: CDKLifeCycleConfig
+      NotebookInstanceName: CDK-Notebook-Instance-User-1
+      SecurityGroupIds:
+        - sg-fc6b03b7
+      SubnetId: subnet-b08ee8bf
+      VolumeSizeInGB: 5
+    Metadata:
+      aws:cdk:path: Notebooks4Teams/CDK-Notebook-Instance-User-1
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=0.34.0,@aws-cdk/aws-efs=0.34.0,@aws-cdk/aws-iam=0.34.0,@aws-cdk/aws-sagemaker=0.34.0,@aws-cdk/cdk=0.34.0,@aws-cdk/cx-api=0.34.0,@aws-cdk/region-info=0.34.0,jsii-runtime=Python/3.6.5
+

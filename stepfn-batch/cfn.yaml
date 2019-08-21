@@ -1,0 +1,284 @@
+Resources:
+  submitsmbatchServiceRole8539F566:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - lambda.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/submitsmbatch/ServiceRole/Resource
+  submitsmbatchServiceRoleDefaultPolicyDA5524D2:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sagemaker:CreateTransformJob
+            Effect: Allow
+            Resource: arn:aws:sagemaker:us-east-1:497456752804:transform-job/xgboost-batch-transform*
+        Version: "2012-10-17"
+      PolicyName: submitsmbatchServiceRoleDefaultPolicyDA5524D2
+      Roles:
+        - Ref: submitsmbatchServiceRole8539F566
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/submitsmbatch/ServiceRole/DefaultPolicy/Resource
+  submitsmbatchA7003682:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: >
+          import json
+
+          import boto3
+
+          from botocore.vendored import requests
+
+          import os
+
+          from datetime import datetime
+
+
+          def lambda_handler(event, context):
+              # TODO implement
+              
+              client = boto3.client('sagemaker')
+
+              print("Calling Sagemaker batch transform")
+
+              try:
+
+                  apptime = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+
+                  response = client.create_transform_job(
+                  TransformJobName=os.environ['transform_job_name']+apptime,
+                  ModelName=os.environ['model_name'],
+                  MaxConcurrentTransforms=int(os.environ['max_concurrent']),
+                  MaxPayloadInMB=int(os.environ['max_payload_size']),
+                  BatchStrategy='MultiRecord',
+                  TransformInput={
+                      'DataSource': {
+                          'S3DataSource': {
+                              'S3DataType': 'S3Prefix',
+                              'S3Uri': os.environ['s3_uri_in']
+                          }
+                      },
+                      'ContentType': 'text/libsvm',
+                      'CompressionType': 'None',
+                      'SplitType': 'None'
+                  },
+                  TransformOutput={
+                      'S3OutputPath': os.environ['s3_uri_out'],
+                  },
+                  TransformResources={
+                      'InstanceType': os.environ['instance_type'],#|'ml.m4.2xlarge'|'ml.m4.4xlarge'|'ml.m4.10xlarge'|'ml.m4.16xlarge'|'ml.c4.xlarge'|'ml.c4.2xlarge'|'ml.c4.4xlarge'|'ml.c4.8xlarge'|'ml.p2.xlarge'|'ml.p2.8xlarge'|'ml.p2.16xlarge'|'ml.p3.2xlarge'|'ml.p3.8xlarge'|'ml.p3.16xlarge'|'ml.c5.xlarge'|'ml.c5.2xlarge'|'ml.c5.4xlarge'|'ml.c5.9xlarge'|'ml.c5.18xlarge'|'ml.m5.large'|'ml.m5.xlarge'|'ml.m5.2xlarge'|'ml.m5.4xlarge'|'ml.m5.12xlarge'|'ml.m5.24xlarge',
+                      'InstanceCount': int(os.environ['instance_count'])
+                  },)
+
+
+                  print(response)
+
+                  res = {'status':"Completed", "name":os.environ['transform_job_name']+apptime}
+
+              except Exception as e:
+
+                  res = {'status':"Failed", "name":os.environ['transform_job_name']+apptime}
+                  print(e)
+              # response = client.invoke_endpoint(
+              #     EndpointName=os.environ['endpoint_name'],
+              #     Body=event['data'],
+              #     ContentType=os.environ['content_type'])
+              
+              return res
+      Handler: index.lambda_handler
+      Role:
+        Fn::GetAtt:
+          - submitsmbatchServiceRole8539F566
+          - Arn
+      Runtime: python3.6
+      Environment:
+        Variables:
+          transform_job_name: xgboost-batch-transform
+          model_name: xgboost-2019-06-18-19-03-13-823
+          max_concurrent: "10"
+          max_payload_size: "10"
+          s3_uri_in: s3://sagemaker-us-east-1-497456752804/in/test.libsvm
+          s3_uri_out: s3://sagemaker-us-east-1-497456752804/out/
+          instance_type: ml.m4.xlarge
+          instance_count: "2"
+      Timeout: 300
+    DependsOn:
+      - submitsmbatchServiceRoleDefaultPolicyDA5524D2
+      - submitsmbatchServiceRole8539F566
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/submitsmbatch/Resource
+  checksmbatchServiceRoleC3D08493:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - lambda.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/checksmbatch/ServiceRole/Resource
+  checksmbatchServiceRoleDefaultPolicyD1D2E77F:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sagemaker:DescribeTransformJob
+            Effect: Allow
+            Resource: arn:aws:sagemaker:us-east-1:497456752804:transform-job/xgboost-batch-transform*
+        Version: "2012-10-17"
+      PolicyName: checksmbatchServiceRoleDefaultPolicyD1D2E77F
+      Roles:
+        - Ref: checksmbatchServiceRoleC3D08493
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/checksmbatch/ServiceRole/DefaultPolicy/Resource
+  checksmbatch2AF41316:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: >
+          import json
+
+          import boto3
+
+          from botocore.vendored import requests
+
+          import os
+
+
+          def lambda_handler(event, context):
+              # TODO implement
+              
+              client = boto3.client('sagemaker')
+              
+              response = client.describe_transform_job(TransformJobName=event["name"])
+              
+              print(response)
+            
+              return {
+                  'status': response["TransformJobStatus"],
+                  'name': event["name"]
+              }
+      Handler: index.lambda_handler
+      Role:
+        Fn::GetAtt:
+          - checksmbatchServiceRoleC3D08493
+          - Arn
+      Runtime: python3.6
+      Environment:
+        Variables:
+          model_name: xgboost-2019-06-18-19-03-13-823
+          content_type: text/csv
+      Timeout: 300
+    DependsOn:
+      - checksmbatchServiceRoleDefaultPolicyD1D2E77F
+      - checksmbatchServiceRoleC3D08493
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/checksmbatch/Resource
+  SMbatchInferenceRole5650B66E:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - states.
+                    - Ref: AWS::Region
+                    - .amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/SMbatchInference/Role/Resource
+  SMbatchInferenceRoleDefaultPolicy977759B7:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: lambda:InvokeFunction
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - submitsmbatchA7003682
+                - Arn
+          - Action: lambda:InvokeFunction
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - checksmbatch2AF41316
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: SMbatchInferenceRoleDefaultPolicy977759B7
+      Roles:
+        - Ref: SMbatchInferenceRole5650B66E
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/SMbatchInference/Role/DefaultPolicy/Resource
+  SMbatchInference87838C3C:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString:
+        Fn::Join:
+          - ""
+          - - '{"StartAt":"Submit Job","States":{"Submit Job":{"Next":"Wait 10
+              Seconds","Type":"Task","Resource":"'
+            - Fn::GetAtt:
+                - submitsmbatchA7003682
+                - Arn
+            - '"},"Wait 10 Seconds":{"Type":"Wait","Seconds":30,"Next":"Get Job
+              Status"},"Get Job Status":{"Next":"Job
+              Complete?","Type":"Task","Resource":"'
+            - Fn::GetAtt:
+                - checksmbatch2AF41316
+                - Arn
+            - '"},"Job
+              Complete?":{"Type":"Choice","Choices":[{"Variable":"$.status","StringEquals":"Failed","Next":"Job
+              Failed"},{"Variable":"$.status","StringEquals":"Completed","Next":"Get
+              Final Job Status"}],"Default":"Wait 10 Seconds"},"Job
+              Failed":{"Type":"Fail","Error":"DescribeJob returned
+              FAILED","Cause":"AWS Batch Job Failed"},"Get Final Job
+              Status":{"End":true,"Type":"Task","Resource":"'
+            - Fn::GetAtt:
+                - checksmbatch2AF41316
+                - Arn
+            - '"}}}'
+      RoleArn:
+        Fn::GetAtt:
+          - SMbatchInferenceRole5650B66E
+          - Arn
+    Metadata:
+      aws:cdk:path: SM-batch-Inference/SMbatchInference/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=0.34.0,@aws-cdk/assets=0.34.0,@aws-cdk/assets-docker=0.34.0,@aws-cdk/aws-applicationautoscaling=0.34.0,@aws-cdk/aws-autoscaling=0.34.0,@aws-cdk/aws-autoscaling-common=0.34.0,@aws-cdk/aws-autoscaling-hooktargets=0.34.0,@aws-cdk/aws-certificatemanager=0.34.0,@aws-cdk/aws-cloudformation=0.34.0,@aws-cdk/aws-cloudfront=0.34.0,@aws-cdk/aws-cloudwatch=0.34.0,@aws-cdk/aws-ec2=0.34.0,@aws-cdk/aws-ecr=0.34.0,@aws-cdk/aws-ecs=0.34.0,@aws-cdk/aws-elasticloadbalancing=0.34.0,@aws-cdk/aws-elasticloadbalancingv2=0.34.0,@aws-cdk/aws-events=0.34.0,@aws-cdk/aws-iam=0.34.0,@aws-cdk/aws-kms=0.34.0,@aws-cdk/aws-lambda=0.34.0,@aws-cdk/aws-logs=0.34.0,@aws-cdk/aws-route53=0.34.0,@aws-cdk/aws-route53-targets=0.34.0,@aws-cdk/aws-s3=0.34.0,@aws-cdk/aws-secretsmanager=0.34.0,@aws-cdk/aws-servicediscovery=0.34.0,@aws-cdk/aws-sns=0.34.0,@aws-cdk/aws-sqs=0.34.0,@aws-cdk/aws-stepfunctions=0.34.0,@aws-cdk/aws-stepfunctions-tasks=0.34.0,@aws-cdk/cdk=0.34.0,@aws-cdk/cx-api=0.34.0,@aws-cdk/region-info=0.34.0,jsii-runtime=Python/3.6.5
+

@@ -1,0 +1,122 @@
+Resources:
+  SingletonServiceRoleDDD815CD:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - lambda.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: LambdaCronSagemakerInference/Singleton/ServiceRole/Resource
+  SingletonServiceRoleDefaultPolicy7525C238:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sagemaker:InvokeEndpoint
+            Effect: Allow
+            Resource: arn:aws:sagemaker:us-east-1:497456752804:endpoint/DEMO-videogames-xgboost-2019-06-18-18-58-35-771
+        Version: "2012-10-17"
+      PolicyName: SingletonServiceRoleDefaultPolicy7525C238
+      Roles:
+        - Ref: SingletonServiceRoleDDD815CD
+    Metadata:
+      aws:cdk:path: LambdaCronSagemakerInference/Singleton/ServiceRole/DefaultPolicy/Resource
+  Singleton8C7B99F3:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: >
+          import json
+
+          import boto3
+
+          from botocore.vendored import requests
+
+          import os
+
+
+          def lambda_handler(event, context):
+              # TODO implement
+              
+              client_sm = boto3.client('sagemaker-runtime')
+              client_s3 = boto3.client('s3')
+
+              print("Getting test data")
+              obj = s3.get_object(Bucket=os.environ['bucket'], Key=os.environ['key'])
+              
+              print("Calling Sagemaker endpoint")
+              response = client.invoke_endpoint(
+                  EndpointName=os.environ['endpoint_name'],
+                  Body=os.environ['input_data'],
+                  ContentType=obj['Body'].read())
+              
+              return {
+                  'statusCode': 200,
+                  'body': json.loads(response['Body'].read())
+              }
+      Handler: index.lambda_handler
+      Role:
+        Fn::GetAtt:
+          - SingletonServiceRoleDDD815CD
+          - Arn
+      Runtime: python3.6
+      Environment:
+        Variables:
+          endpoint_name: DEMO-videogames-xgboost-2019-06-18-18-58-35-771
+          content_type: text/csv
+          input_data: s3://sagemaker-us-east-1-497456752804/in/test.libsvm
+          bucket: sagemaker-us-east-1-497456752804
+          key: in/test.libsvm
+      Timeout: 300
+    DependsOn:
+      - SingletonServiceRoleDefaultPolicy7525C238
+      - SingletonServiceRoleDDD815CD
+    Metadata:
+      aws:cdk:path: LambdaCronSagemakerInference/Singleton/Resource
+  SingletonAllowEventRuleLambdaCronSagemakerInferenceRule04068512042DD065:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - Singleton8C7B99F3
+          - Arn
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+          - Rule4C995B7F
+          - Arn
+    Metadata:
+      aws:cdk:path: LambdaCronSagemakerInference/Singleton/AllowEventRuleLambdaCronSagemakerInferenceRule04068512
+  Rule4C995B7F:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(0 18 ? * MON-FRI *)
+      State: ENABLED
+      Targets:
+        - Arn:
+            Fn::GetAtt:
+              - Singleton8C7B99F3
+              - Arn
+          Id: Singleton
+    Metadata:
+      aws:cdk:path: LambdaCronSagemakerInference/Rule/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=0.34.0,@aws-cdk/assets=0.34.0,@aws-cdk/assets-docker=0.34.0,@aws-cdk/aws-applicationautoscaling=0.34.0,@aws-cdk/aws-autoscaling=0.34.0,@aws-cdk/aws-autoscaling-common=0.34.0,@aws-cdk/aws-autoscaling-hooktargets=0.34.0,@aws-cdk/aws-certificatemanager=0.34.0,@aws-cdk/aws-cloudformation=0.34.0,@aws-cdk/aws-cloudfront=0.34.0,@aws-cdk/aws-cloudwatch=0.34.0,@aws-cdk/aws-codebuild=0.34.0,@aws-cdk/aws-codecommit=0.34.0,@aws-cdk/aws-codepipeline=0.34.0,@aws-cdk/aws-ec2=0.34.0,@aws-cdk/aws-ecr=0.34.0,@aws-cdk/aws-ecs=0.34.0,@aws-cdk/aws-elasticloadbalancing=0.34.0,@aws-cdk/aws-elasticloadbalancingv2=0.34.0,@aws-cdk/aws-events=0.34.0,@aws-cdk/aws-events-targets=0.34.0,@aws-cdk/aws-iam=0.34.0,@aws-cdk/aws-kms=0.34.0,@aws-cdk/aws-lambda=0.34.0,@aws-cdk/aws-logs=0.34.0,@aws-cdk/aws-route53=0.34.0,@aws-cdk/aws-route53-targets=0.34.0,@aws-cdk/aws-s3=0.34.0,@aws-cdk/aws-secretsmanager=0.34.0,@aws-cdk/aws-servicediscovery=0.34.0,@aws-cdk/aws-sns=0.34.0,@aws-cdk/aws-sqs=0.34.0,@aws-cdk/aws-stepfunctions=0.34.0,@aws-cdk/cdk=0.34.0,@aws-cdk/cx-api=0.34.0,@aws-cdk/region-info=0.34.0,jsii-runtime=Python/3.6.5
+

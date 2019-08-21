@@ -1,0 +1,29 @@
+{
+	"model_name": "test-name",
+	"version": "1.0.0",
+	"containers": [{
+		"ContainerHostname": "",
+		"Image": "<AccountId>.dkr.ecr.<Region>.amazonaws.com/<repo>:<tag>",
+		"ModelDataUrl": "s3://<Bucket>/<Prefix>/<file>.tar.gz",
+		"Environment": {
+			"SAGEMAKER_CONTAINER_LOG_LEVEL": "20",
+			"SAGEMAKER_ENABLE_CLOUDWATCH_METRICS": "true",
+			"SAGEMAKER_PROGRAM": "entrypoint.py",
+			"SAGEMAKER_REGION": "",
+			"SAGEMAKER_SUBMIT_DIRECTORY": "s3://<Bucket>/<Prefix>/<file>.tar.gz"
+		}
+	}],
+	"endpoint": {
+		"config": {
+			"variants": [{
+				"InitialInstanceCount": 1,
+				"InstanceType": "ml.t2.medium",
+				"InitialVariantWeight": 1.0
+			}]
+		}
+	},
+	"tags": {
+		"stage": "production",
+		"team": "ds"
+	}
+}

@@ -1,0 +1,150 @@
+{
+  "Resources": {
+    "SingletonServiceRoleDDD815CD": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "lambda.",
+                      {
+                        "Ref": "AWS::URLSuffix"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "LambdaCronSagemakerTrain/Singleton/ServiceRole/Resource"
+      }
+    },
+    "SingletonServiceRoleDefaultPolicy7525C238": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sagemaker:CreateTrainingJob",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::497456752804:role/service-role/AmazonSageMaker-ExecutionRole-20180629T142561"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "SingletonServiceRoleDefaultPolicy7525C238",
+        "Roles": [
+          {
+            "Ref": "SingletonServiceRoleDDD815CD"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "LambdaCronSagemakerTrain/Singleton/ServiceRole/DefaultPolicy/Resource"
+      }
+    },
+    "Singleton8C7B99F3": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "import json\nimport boto3\nfrom botocore.vendored import requests\nimport os\nimport datetime\n\n#USER VARIABLES\ntimenow = datetime.datetime.now().strftime(\"%Y-%m-%d-%H-%M-%S\")\nmax_depth = os.environ['max_depth']\ncontainer = os.environ['container']\nbase_name = os.environ['base_name']\nrole_arn = os.environ['role_arn']\ns3_input_train = os.environ['s3_input']\ns3_input_validation = os.environ['s3_input_validation']\ns3_output = os.environ['s3_output']\n\ndef run_training():\n    response = client.create_training_job(\n    TrainingJobName='videogames-xgboost-'+timenow,\n    HyperParameters={\n        'max_depth': max_depth\n    },\n    AlgorithmSpecification={\n        'TrainingImage': container,\n        'TrainingInputMode': 'File',\n    },\n    RoleArn=role_arn,\n    InputDataConfig=[\n        {\n            'ChannelName': 'train',\n            'DataSource': {\n                'S3DataSource': {\n                    'S3DataType': 'S3Prefix',\n                    'S3Uri': s3_input_train,\n                    'S3DataDistributionType': 'FullyReplicated',\n                }\n            },\n            'ContentType': 'libsvm',\n            'CompressionType': 'None',\n            'InputMode': 'File',\n        },\n        {\n            'ChannelName': 'validation',\n            'DataSource': {\n                'S3DataSource': {\n                    'S3DataType': 'S3Prefix',\n                    'S3Uri': s3_input_validation,\n                    'S3DataDistributionType': 'FullyReplicated',\n                }\n            },\n            'ContentType': 'libsvm',\n            'CompressionType': 'None',\n            'InputMode': 'File',\n        },\n    ],\n    OutputDataConfig={\n        'S3OutputPath': s3_output\n    },\n    StoppingCondition={\n        'MaxRuntimeInSeconds': 3000\n    },\n    ResourceConfig={\n        'InstanceType': 'ml.m4.xlarge',\n        'InstanceCount': 1,\n        'VolumeSizeInGB': 3,\n    },\n    Tags=[\n        {\n            'Key': 'Training Time',\n            'Value': timenow\n        },\n        {\n            'Key': 'Max depth used',\n            'Value': max_depth\n        },\n    ])\n\n    print(response)\n\n\ndef lambda_handler(event, context):\n    # TODO implement\n    \n    client = boto3.client('sagemaker-runtime')\n    \n    print(\"Calling Sagemaker endpoint\")\n\n    try:\n        run_training()\n    except Exception as e:\n        print(\"something went wrong ...\")\n        print(e)\n    \n    return {\n        'statusCode': 200,\n        'body': json.loads(response['Body'].read())\n    }\n"
+        },
+        "Handler": "index.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "SingletonServiceRoleDDD815CD",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.7",
+        "Environment": {
+          "Variables": {
+            "base_name": "video-game-xgboost",
+            "max_depth": "5",
+            "container": "811284229777.dkr.ecr.us-east-1.amazonaws.com/xgboost:1",
+            "role_arn": "arn:aws:iam::497456752804:role/service-role/AmazonSageMaker-ExecutionRole-20180629T142561",
+            "s3_input_train": "s3://sagemaker-us-east-1-497456752804/sagemaker/videogames-xgboost/train",
+            "s3_input_validation": "s3://sagemaker-us-east-1-497456752804/sagemaker/videogames-xgboost/validation",
+            "s3_output": "s3://sagemaker-us-east-1-497456752804/sagemaker/videogames-xgboost/output"
+          }
+        },
+        "Timeout": 300
+      },
+      "DependsOn": [
+        "SingletonServiceRoleDefaultPolicy7525C238",
+        "SingletonServiceRoleDDD815CD"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "LambdaCronSagemakerTrain/Singleton/Resource"
+      }
+    },
+    "SingletonAllowEventRuleLambdaCronSagemakerTrainRule20424AC83E2E579C": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "Singleton8C7B99F3",
+            "Arn"
+          ]
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "Rule4C995B7F",
+            "Arn"
+          ]
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "LambdaCronSagemakerTrain/Singleton/AllowEventRuleLambdaCronSagemakerTrainRule20424AC8"
+      }
+    },
+    "Rule4C995B7F": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "cron(0 18 ? * MON-FRI *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "Singleton8C7B99F3",
+                "Arn"
+              ]
+            },
+            "Id": "LambdaCronSagemakerTrainSingleton1ED3BC42"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "LambdaCronSagemakerTrain/Rule/Resource"
+      }
+    }
+  }
+}
