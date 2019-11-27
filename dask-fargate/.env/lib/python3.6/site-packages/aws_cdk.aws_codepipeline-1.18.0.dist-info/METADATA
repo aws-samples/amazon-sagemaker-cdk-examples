@@ -1,0 +1,244 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-codepipeline
+Version: 1.18.0
+Summary: Better interface to AWS Code Pipeline
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-events (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-kms (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-s3 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+
+## AWS CodePipeline Construct Library
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+### Pipeline
+
+To construct an empty Pipeline:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_codepipeline as codepipeline
+
+pipeline = codepipeline.Pipeline(self, "MyFirstPipeline")
+```
+
+To give the Pipeline a nice, human-readable name:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+pipeline = codepipeline.Pipeline(self, "MyFirstPipeline",
+    pipeline_name="MyPipeline"
+)
+```
+
+### Stages
+
+You can provide Stages when creating the Pipeline:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+pipeline = codepipeline.Pipeline(self, "MyFirstPipeline",
+    stages=[{
+        "stage_name": "Source",
+        "actions": []
+    }
+    ]
+)
+```
+
+Or append a Stage to an existing Pipeline:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+source_stage = pipeline.add_stage(
+    stage_name="Source",
+    actions=[]
+)
+```
+
+You can insert the new Stage at an arbitrary point in the Pipeline:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+some_stage = pipeline.add_stage(
+    stage_name="SomeStage",
+    placement={
+        # note: you can only specify one of the below properties
+        "right_before": another_stage,
+        "just_after": another_stage
+    }
+)
+```
+
+### Actions
+
+Actions live in a separate package, `@aws-cdk/aws-codepipeline-actions`.
+
+To add an Action to a Stage, you can provide it when creating the Stage,
+in the `actions` property,
+or you can use the `IStage.addAction()` method to mutate an existing Stage:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+source_stage.add_action(some_action)
+```
+
+### Cross-region CodePipelines
+
+You can also use the cross-region feature to deploy resources
+(currently, only CloudFormation Stacks are supported)
+into a different region than your Pipeline is in.
+
+It works like this:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+pipeline = codepipeline.Pipeline(self, "MyFirstPipeline",
+    # ...
+    cross_region_replication_buckets={
+        # note that a physical name of the replication Bucket must be known at synthesis time
+        "us-west-1": s3.Bucket.from_bucket_attributes(self, "UsWest1ReplicationBucket",
+            bucket_name="my-us-west-1-replication-bucket",
+            # optional KMS key
+            encryption_key=kms.Key.from_key_arn(self, "UsWest1ReplicationKey", "arn:aws:kms:us-west-1:123456789012:key/1234-5678-9012")
+        )
+    }
+)
+
+# later in the code...
+codepipeline_actions.CloudFormationCreateUpdateStackAction(
+    action_name="CFN_US_West_1",
+    # ...
+    region="us-west-1"
+)
+```
+
+This way, the `CFN_US_West_1` Action will operate in the `us-west-1` region,
+regardless of which region your Pipeline is in.
+
+If you don't provide a bucket for a region (other than the Pipeline's region)
+that you're using for an Action,
+there will be a new Stack, called `<nameOfYourPipelineStack>-support-<region>`,
+defined for you, containing a replication Bucket.
+This new Stack will depend on your Pipeline Stack,
+so deploying the Pipeline Stack will deploy the support Stack(s) first.
+Example:
+
+```bash
+$ cdk ls
+MyMainStack
+MyMainStack-support-us-west-1
+$ cdk deploy MyMainStack
+# output of cdk deploy here...
+```
+
+See [the AWS docs here](https://docs.aws.amazon.com/codepipeline/latest/userguide/actions-create-cross-region.html)
+for more information on cross-region CodePipelines.
+
+#### Creating an encrypted replication bucket
+
+If you're passing a replication bucket created in a different stack,
+like this:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+replication_stack = Stack(app, "ReplicationStack",
+    env={
+        "region": "us-west-1"
+    }
+)
+key = kms.Key(replication_stack, "ReplicationKey")
+replication_bucket = s3.Bucket(replication_stack, "ReplicationBucket",
+    # like was said above - replication buckets need a set physical name
+    bucket_name=PhysicalName.GENERATE_IF_NEEDED,
+    encryption_key=key
+)
+
+# later...
+codepipeline.Pipeline(pipeline_stack, "Pipeline",
+    cross_region_replication_buckets={
+        "us-west-1": replication_bucket
+    }
+)
+```
+
+When trying to encrypt it
+(and note that if any of the cross-region actions happen to be cross-account as well,
+the bucket *has to* be encrypted - otherwise the pipeline will fail at runtime),
+you cannot use a key directly - KMS keys don't have physical names,
+and so you can't reference them across environments.
+
+In this case, you need to use an alias in place of the key when creating the bucket:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+key = kms.Key(replication_stack, "ReplicationKey")
+alias = kms.Alias(replication_stack, "ReplicationAlias",
+    # aliasName is required
+    alias_name=PhysicalName.GENERATE_IF_NEEDED,
+    target_key=key
+)
+replication_bucket = s3.Bucket(replication_stack, "ReplicationBucket",
+    bucket_name=PhysicalName.GENERATE_IF_NEEDED,
+    encryption_key=alias
+)
+```
+
+### Events
+
+#### Using a pipeline as an event target
+
+A pipeline can be used as a target for a CloudWatch event rule:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_events_targets as targets
+import aws_cdk.aws_events as events
+
+# kick off the pipeline every day
+rule = events.Rule(self, "Daily",
+    schedule=events.Schedule.rate(Duration.days(1))
+)
+
+rule.add_target(targets.CodePipeline(pipeline))
+```
+
+When a pipeline is used as an event target, the
+"codepipeline:StartPipelineExecution" permission is granted to the AWS
+CloudWatch Events service.
+
+#### Event sources
+
+Pipelines emit CloudWatch events. To define event rules for events emitted by
+the pipeline, stages or action, use the `onXxx` methods on the respective
+construct:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+my_pipeline.on_state_change("MyPipelineStateChange", target)
+my_stage.on_state_change("MyStageStateChange", target)
+my_action.on_state_change("MyActionStateChange", target)
+```
+
+

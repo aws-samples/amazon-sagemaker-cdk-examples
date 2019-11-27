@@ -1,0 +1,109 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-secretsmanager
+Version: 1.18.0
+Summary: The CDK Construct Library for AWS::SecretsManager
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-ec2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-kms (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-lambda (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+
+## AWS Secrets Manager Construct Library
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+secretsmanager = require("@aws-cdk/aws-secretsmanager")
+```
+
+### Create a new Secret in a Stack
+
+In order to have SecretsManager generate a new secret value automatically,
+you can get started with the following:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Default secret
+secret = secretsmanager.Secret(self, "Secret")
+secret.grant_read(role)
+
+iam.User(self, "User",
+    password=secret.secret_value
+)
+
+# Templated secret
+templated_secret = secretsmanager.Secret(self, "TemplatedSecret",
+    generate_secret_string={
+        "secret_string_template": JSON.stringify(username="user"),
+        "generate_string_key": "password"
+    }
+)
+
+iam.User(self, "OtherUser",
+    user_name=templated_secret.secret_value_from_json("username").to_string(),
+    password=templated_secret.secret_value_from_json("password")
+)
+```
+
+The `Secret` construct does not allow specifying the `SecretString` property
+of the `AWS::SecretsManager::Secret` resource (as this will almost always
+lead to the secret being surfaced in plain text and possibly committed to
+your source control).
+
+If you need to use a pre-existing secret, the recommended way is to manually
+provision the secret in *AWS SecretsManager* and use the `Secret.fromSecretArn`
+or `Secret.fromSecretAttributes` method to make it available in your CDK Application:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+secret = secretsmanager.Secret.from_secret_attributes(scope, "ImportedSecret",
+    secret_arn="arn:aws:secretsmanager:<region>:<account-id-number>:secret:<secret-name>-<random-6-characters>",
+    # If the secret is encrypted using a KMS-hosted CMK, either import or reference that key:
+    encryption_key=encryption_key
+)
+```
+
+SecretsManager secret values can only be used in select set of properties. For the
+list of properties, see [the CloudFormation Dynamic References documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.htm).
+
+### Rotating a Secret
+
+A rotation schedule can be added to a Secret:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+fn = lambda.Function(...)
+secret = secretsmanager.Secret(self, "Secret")
+
+secret.add_rotation_schedule("RotationSchedule",
+    rotation_lambda=fn,
+    automatically_after=Duration.days(15)
+)
+```
+
+See [Overview of the Lambda Rotation Function](https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets-lambda-function-overview.html) on how to implement a Lambda Rotation Function.
+
+For RDS credentials rotation, see [aws-rds](https://github.com/aws/aws-cdk/blob/master/packages/%40aws-cdk/aws-rds/README.md).
+
+

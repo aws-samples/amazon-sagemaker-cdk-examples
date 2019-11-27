@@ -1,0 +1,630 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-ecs
+Version: 1.18.0
+Summary: The CDK Construct Library for AWS::ECS
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-applicationautoscaling (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-autoscaling (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-autoscaling-hooktargets (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-certificatemanager (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-cloudformation (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-cloudwatch (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ec2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ecr (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ecr-assets (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-elasticloadbalancing (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-elasticloadbalancingv2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-lambda (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-logs (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-route53 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-route53-targets (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-secretsmanager (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-servicediscovery (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-sns (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-sqs (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ssm (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.cx-api (>=1.18.0,~=1.18)
+
+## Amazon ECS Construct Library
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+This package contains constructs for working with **Amazon Elastic Container
+Service** (Amazon ECS).
+
+Amazon ECS is a highly scalable, fast, container management service
+that makes it easy to run, stop,
+and manage Docker containers on a cluster of Amazon EC2 instances.
+
+For further information on Amazon ECS,
+see the [Amazon ECS documentation](https://docs.aws.amazon.com/ecs)
+
+The following example creates an Amazon ECS cluster,
+adds capacity to it,
+and instantiates the Amazon ECS Service with an automatic load balancer.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_ecs as ecs
+
+# Create an ECS cluster
+cluster = ecs.Cluster(self, "Cluster",
+    vpc=vpc
+)
+
+# Add capacity to it
+cluster.add_capacity("DefaultAutoScalingGroupCapacity",
+    instance_type=ec2.InstanceType("t2.xlarge"),
+    desired_capacity=3
+)
+
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+
+task_definition.add_container("DefaultContainer",
+    image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
+    memory_limit_mi_b=512
+)
+
+# Instantiate an Amazon ECS Service
+ecs_service = ecs.Ec2Service(self, "Service",
+    cluster=cluster,
+    task_definition=task_definition
+)
+```
+
+For a set of constructs defining common ECS architectural patterns, see the `@aws-cdk/aws-ecs-patterns` package.
+
+## AWS Fargate vs Amazon ECS
+
+There are two sets of constructs in this library; one to run tasks on Amazon ECS and
+one to run tasks on AWS Fargate.
+
+* Use the `Ec2TaskDefinition` and `Ec2Service` constructs to run tasks on Amazon EC2 instances running in your account.
+* Use the `FargateTaskDefinition` and `FargateService` constructs to run tasks on
+  instances that are managed for you by AWS.
+
+Here are the main differences:
+
+* **Amazon EC2**: instances are under your control. Complete control of task to host
+  allocation. Required to specify at least a memory reseration or limit for
+  every container. Can use Host, Bridge and AwsVpc networking modes. Can attach
+  Classic Load Balancer. Can share volumes between container and host.
+* **AWS Fargate**: tasks run on AWS-managed instances, AWS manages task to host
+  allocation for you. Requires specification of memory and cpu sizes at the
+  taskdefinition level. Only supports AwsVpc networking modes and
+  Application/Network Load Balancers. Only the AWS log driver is supported.
+  Many host features are not supported such as adding kernel capabilities
+  and mounting host devices/volumes inside the container.
+
+For more information on Amazon EC2 vs AWS Fargate and networking see the AWS Documentation:
+[AWS Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html) and
+[Task Networking](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html).
+
+## Clusters
+
+A `Cluster` defines the infrastructure to run your
+tasks on. You can run many tasks on a single cluster.
+
+The following code creates a cluster that can run AWS Fargate tasks:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+cluster = ecs.Cluster(self, "Cluster",
+    vpc=vpc
+)
+```
+
+To use tasks with Amazon EC2 launch-type, you have to add capacity to
+the cluster in order for tasks to be scheduled on your instances.  Typically,
+you add an AutoScalingGroup with instances running the latest
+Amazon ECS-optimized AMI to the cluster. There is a method to build and add such an
+AutoScalingGroup automatically, or you can supply a customized AutoScalingGroup
+that you construct yourself. It's possible to add multiple AutoScalingGroups
+with various instance types.
+
+The following example creates an Amazon ECS cluster and adds capacity to it:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+cluster = ecs.Cluster(self, "Cluster",
+    vpc=vpc
+)
+
+# Either add default capacity
+cluster.add_capacity("DefaultAutoScalingGroupCapacity",
+    instance_type=ec2.InstanceType("t2.xlarge"),
+    desired_capacity=3
+)
+
+# Or add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
+auto_scaling_group = autoscaling.AutoScalingGroup(self, "ASG",
+    vpc=vpc,
+    instance_type=ec2.InstanceType("t2.xlarge"),
+    machine_image=EcsOptimizedImage.amazon_linux(),
+    # Or use Amazon ECS-Optimized Amazon Linux 2 AMI
+    # machineImage: EcsOptimizedImage.amazonLinux2(),
+    desired_capacity=3
+)
+
+cluster.add_auto_scaling_group(auto_scaling_group)
+```
+
+If you omit the property `vpc`, the construct will create a new VPC with two AZs.
+
+### Spot Instances
+
+To add spot instances into the cluster, you must specify the `spotPrice` in the `ecs.AddCapacityOptions` and optionally enable the `spotInstanceDraining` property.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Add an AutoScalingGroup with spot instances to the existing cluster
+cluster.add_capacity("AsgSpot",
+    max_capacity=2,
+    min_capacity=2,
+    desired_capacity=2,
+    instance_type=ec2.InstanceType("c5.xlarge"),
+    spot_price="0.0735",
+    # Enable the Automated Spot Draining support for Amazon ECS
+    spot_instance_draining=True
+)
+```
+
+## Task definitions
+
+A task Definition describes what a single copy of a **task** should look like.
+A task definition has one or more containers; typically, it has one
+main container (the *default container* is the first one that's added
+to the task definition, and it is marked *essential*) and optionally
+some supporting containers which are used to support the main container,
+doings things like upload logs or metrics to monitoring services.
+
+To run a task or service with Amazon EC2 launch type, use the `Ec2TaskDefinition`. For AWS Fargate tasks/services, use the
+`FargateTaskDefinition`. These classes provide a simplified API that only contain
+properties relevant for that specific launch type.
+
+For a `FargateTaskDefinition`, specify the task size (`memoryLimitMiB` and `cpu`):
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+fargate_task_definition = ecs.FargateTaskDefinition(self, "TaskDef",
+    memory_limit_mi_b=512,
+    cpu=256
+)
+```
+
+To add containers to a task definition, call `addContainer()`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+container = fargate_task_definition.add_container("WebContainer",
+    # Use an image from DockerHub
+    image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+)
+```
+
+For a `Ec2TaskDefinition`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+ec2_task_definition = ecs.Ec2TaskDefinition(self, "TaskDef",
+    network_mode=NetworkMode.BRIDGE
+)
+
+container = ec2_task_definition.add_container("WebContainer",
+    # Use an image from DockerHub
+    image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
+    memory_limit_mi_b=1024
+)
+```
+
+You can specify container properties when you add them to the task definition, or with various methods, e.g.:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+container.add_port_mappings(
+    container_port=3000
+)
+```
+
+To use a TaskDefinition that can be used with either Amazon EC2 or
+AWS Fargate launch types, use the `TaskDefinition` construct.
+
+When creating a task definition you have to specify what kind of
+tasks you intend to run: Amazon EC2, AWS Fargate, or both.
+The following example uses both:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+task_definition = ecs.TaskDefinition(self, "TaskDef",
+    memory_mi_b="512",
+    cpu="256",
+    network_mode=NetworkMode.AWS_VPC,
+    compatibility=ecs.Compatibility.EC2_AND_FARGATE
+)
+```
+
+### Images
+
+Images supply the software that runs inside the container. Images can be
+obtained from either DockerHub or from ECR repositories, or built directly from a local Dockerfile.
+
+* `ecs.ContainerImage.fromRegistry(imageName)`: use a public image.
+* `ecs.ContainerImage.fromRegistry(imageName, { credentials: mySecret })`: use a private image that requires credentials.
+* `ecs.ContainerImage.fromEcrRepository(repo, tag)`: use the given ECR repository as the image
+  to start. If no tag is provided, "latest" is assumed.
+* `ecs.ContainerImage.fromAsset('./image')`: build and upload an
+  image directly from a `Dockerfile` in your source directory.
+
+### Environment variables
+
+To pass environment variables to the container, use the `environment` and `secrets` props.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+task_definition.add_container("container",
+    image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
+    memory_limit_mi_b=1024,
+    environment={# clear text, not for sensitive data
+        "STAGE": "prod"},
+    secrets={# Retrieved from AWS Secrets Manager or AWS Systems Manager Parameter Store at container start-up.
+        "SECRET": ecs.Secret.from_secrets_manager(secret),
+        "PARAMETER": ecs.Secret.from_ssm_parameter(parameter)}
+)
+```
+
+The task execution role is automatically granted read permissions on the secrets/parameters.
+
+## Service
+
+A `Service` instantiates a `TaskDefinition` on a `Cluster` a given number of
+times, optionally associating them with a load balancer.
+If a task fails,
+Amazon ECS automatically restarts the task.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+task_definition =
+
+service = ecs.FargateService(self, "Service",
+    cluster=cluster,
+    task_definition=task_definition,
+    desired_count=5
+)
+```
+
+### Include an application/network load balancer
+
+`Services` are load balancing targets and can be added to a target group, which will be attached to an application/network load balancers:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_elasticloadbalancingv2 as elbv2
+
+service = ecs.FargateService(self, "Service")
+
+lb = elbv2.ApplicationLoadBalancer(self, "LB", vpc=vpc, internet_facing=True)
+listener = lb.add_listener("Listener", port=80)
+target_group1 = listener.add_targets("ECS1",
+    port=80,
+    targets=[service]
+)
+target_group2 = listener.add_targets("ECS2",
+    port=80,
+    targets=[service.load_balancer_target(
+        container_name="MyContainer",
+        container_port=8080
+    )]
+)
+```
+
+Note that in the example above, the default `service` only allows you to register the first essential container or the first mapped port on the container as a target and add it to a new target group. To have more control over which container and port to register as targets, you can use `service.loadBalancerTarget()` to return a load balancing target for a specific container and port.
+
+Alternatively, you can also create all load balancer targets to be registered in this service, add them to target groups, and attach target groups to listeners accordingly.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_elasticloadbalancingv2 as elbv2
+
+service = ecs.FargateService(self, "Service")
+
+lb = elbv2.ApplicationLoadBalancer(self, "LB", vpc=vpc, internet_facing=True)
+listener = lb.add_listener("Listener", port=80)
+service.register_load_balancer_targets(
+    container_target={
+        "container_name": "web",
+        "container_port": 80
+    },
+    target_group_id="ECS",
+    listener=ecs.ListenerConfig.application_listener(listener,
+        protocol=elbv2.ApplicationProtocol.HTTPS
+    )
+)
+```
+
+### Using a Load Balancer from a different Stack
+
+If you want to put your Load Balancer and the Service it is load balancing to in
+different stacks, you may not be able to use the convenience methods
+`loadBalancer.addListener()` and `listener.addTargets()`.
+
+The reason is that these methods will create resources in the same Stack as the
+object they're called on, which may lead to cyclic references between stacks.
+Instead, you will have to create an `ApplicationListener` in the service stack,
+or an empty `TargetGroup` in the load balancer stack that you attach your
+service to.
+
+See the [ecs/cross-stack-load-balancer example](https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/ecs/cross-stack-load-balancer/)
+for the alternatives.
+
+### Include a classic load balancer
+
+`Services` can also be directly attached to a classic load balancer as targets:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_elasticloadbalancing as elb
+
+service = ecs.Ec2Service(self, "Service")
+
+lb = elb.LoadBalancer(stack, "LB", vpc=vpc)
+lb.add_listener(external_port=80)
+lb.add_target(service)
+```
+
+Similarly, if you want to have more control over load balancer targeting:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_elasticloadbalancing as elb
+
+service = ecs.Ec2Service(self, "Service")
+
+lb = elb.LoadBalancer(stack, "LB", vpc=vpc)
+lb.add_listener(external_port=80)
+lb.add_target(service.load_balancer_target,
+    container_name="MyContainer",
+    container_port=80
+)
+```
+
+There are two higher-level constructs available which include a load balancer for you that can be found in the aws-ecs-patterns module:
+
+* `LoadBalancedFargateService`
+* `LoadBalancedEc2Service`
+
+## Task Auto-Scaling
+
+You can configure the task count of a service to match demand. Task auto-scaling is
+configured by calling `autoScaleTaskCount()`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+scaling = service.auto_scale_task_count(max_capacity=10)
+scaling.scale_on_cpu_utilization("CpuScaling",
+    target_utilization_percent=50
+)
+
+scaling.scale_on_request_count("RequestScaling",
+    requests_per_target=10000,
+    target_group=target
+)
+```
+
+Task auto-scaling is powered by *Application Auto-Scaling*.
+See that section for details.
+
+## Instance Auto-Scaling
+
+If you're running on AWS Fargate, AWS manages the physical machines that your
+containers are running on for you. If you're running an Amazon ECS cluster however,
+your Amazon EC2 instances might fill up as your number of Tasks goes up.
+
+To avoid placement errors, configure auto-scaling for your
+Amazon EC2 instance group so that your instance count scales with demand. To keep
+your Amazon EC2 instances halfway loaded, scaling up to a maximum of 30 instances
+if required:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+auto_scaling_group = cluster.add_capacity("DefaultAutoScalingGroup",
+    instance_type=ec2.InstanceType("t2.xlarge"),
+    min_capacity=3,
+    max_capacity=30,
+    desired_capacity=3,
+
+    # Give instances 5 minutes to drain running tasks when an instance is
+    # terminated. This is the default, turn this off by specifying 0 or
+    # change the timeout up to 900 seconds.
+    task_drain_time=Duration.seconds(300)
+)
+
+auto_scaling_group.scale_on_cpu_utilization("KeepCpuHalfwayLoaded",
+    target_utilization_percent=50
+)
+```
+
+See the `@aws-cdk/aws-autoscaling` library for more autoscaling options
+you can configure on your instances.
+
+## Integration with CloudWatch Events
+
+To start an Amazon ECS task on an Amazon EC2-backed Cluster, instantiate an
+`@aws-cdk/aws-events-targets.EcsTask` instead of an `Ec2Service`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_events_targets as targets
+
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_asset(path.resolve(__dirname, "..", "eventhandler-image")),
+    memory_limit_mi_b=256,
+    logging=ecs.AwsLogDriver(stream_prefix="EventDemo")
+)
+
+# An Rule that describes the event trigger (in this case a scheduled run)
+rule = events.Rule(self, "Rule",
+    schedule=events.Schedule.expression("rate(1 min)")
+)
+
+# Pass an environment variable to the container 'TheContainer' in the task
+rule.add_target(targets.EcsTask(
+    cluster=cluster,
+    task_definition=task_definition,
+    task_count=1,
+    container_overrides=[ContainerOverride(
+        container_name="TheContainer",
+        environment=[TaskEnvironmentVariable(
+            name="I_WAS_TRIGGERED",
+            value="From CloudWatch Events"
+        )]
+    )]
+))
+```
+
+## Log Drivers
+
+Currently Supported Log Drivers:
+
+* awslogs
+* fluentd
+* gelf
+* journald
+* json-file
+* splunk
+* syslog
+
+### awslogs Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.awslogs(stream_prefix="EventDemo")
+)
+```
+
+### fluentd Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.fluentd()
+)
+```
+
+### gelf Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.gelf()
+)
+```
+
+### journald Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.journald()
+)
+```
+
+### json-file Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.json_file()
+)
+```
+
+### splunk Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.splunk()
+)
+```
+
+### syslog Log Driver
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.LogDrivers.syslog()
+)
+```
+
+### Generic Log Driver
+
+A generic log driver object exists to provide a lower level abstraction of the log driver configuration.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Create a Task Definition for the container to start
+task_definition = ecs.Ec2TaskDefinition(self, "TaskDef")
+task_definition.add_container("TheContainer",
+    image=ecs.ContainerImage.from_registry("example-image"),
+    memory_limit_mi_b=256,
+    logging=ecs.GenericLogDriver(
+        log_driver="fluentd",
+        options={
+            "tag": "example-tag"
+        }
+    )
+)
+```
+
+

@@ -1,0 +1,635 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-stepfunctions
+Version: 1.18.0
+Summary: The CDK Construct Library for AWS::StepFunctions
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-cloudwatch (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-events (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+
+## AWS Step Functions Construct Library
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Experimental](https://img.shields.io/badge/stability-Experimental-important.svg?style=for-the-badge)
+
+> **This is a *developer preview* (public beta) module. Releases might lack important features and might have
+> future breaking changes.**
+>
+> This API is still under active development and subject to non-backward
+> compatible changes or removal in any future version. Use of the API is not recommended in production
+> environments. Experimental APIs are not subject to the Semantic Versioning model.
+
+---
+<!--END STABILITY BANNER-->
+
+The `@aws-cdk/aws-stepfunctions` package contains constructs for building
+serverless workflows using objects. Use this in conjunction with the
+`@aws-cdk/aws-stepfunctions-tasks` package, which contains classes used
+to call other AWS services.
+
+Defining a workflow looks like this (for the [Step Functions Job Poller
+example](https://docs.aws.amazon.com/step-functions/latest/dg/job-status-poller-sample.html)):
+
+### TypeScript example
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_stepfunctions as sfn
+import aws_cdk.aws_stepfunctions_tasks as tasks
+
+submit_lambda = lambda.Function(self, "SubmitLambda", ...)
+get_status_lambda = lambda.Function(self, "CheckLambda", ...)
+
+submit_job = sfn.Task(self, "Submit Job",
+    task=tasks.InvokeFunction(submit_lambda),
+    # Put Lambda's result here in the execution's state object
+    result_path="$.guid"
+)
+
+wait_x = sfn.Wait(self, "Wait X Seconds",
+    duration=sfn.WaitDuration.seconds_path("$.wait_time")
+)
+
+get_status = sfn.Task(self, "Get Job Status",
+    task=tasks.InvokeFunction(get_status_lambda),
+    # Pass just the field named "guid" into the Lambda, put the
+    # Lambda's result in a field called "status"
+    input_path="$.guid",
+    result_path="$.status"
+)
+
+job_failed = sfn.Fail(self, "Job Failed",
+    cause="AWS Batch Job Failed",
+    error="DescribeJob returned FAILED"
+)
+
+final_status = sfn.Task(self, "Get Final Job Status",
+    task=tasks.InvokeFunction(get_status_lambda),
+    # Use "guid" field as input, output of the Lambda becomes the
+    # entire state machine output.
+    input_path="$.guid"
+)
+
+definition = submit_job.next(wait_x).next(get_status).next(sfn.Choice(self, "Job Complete?").when(sfn.Condition.string_equals("$.status", "FAILED"), job_failed).when(sfn.Condition.string_equals("$.status", "SUCCEEDED"), final_status).otherwise(wait_x))
+
+sfn.StateMachine(self, "StateMachine",
+    definition=definition,
+    timeout=Duration.minutes(5)
+)
+```
+
+## State Machine
+
+A `stepfunctions.StateMachine` is a resource that takes a state machine
+definition. The definition is specified by its start state, and encompasses
+all states reachable from the start state:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+start_state = stepfunctions.Pass(self, "StartState")
+
+stepfunctions.StateMachine(self, "StateMachine",
+    definition=start_state
+)
+```
+
+State machines execute using an IAM Role, which will automatically have all
+permissions added that are required to make all state machine tasks execute
+properly (for example, permissions to invoke any Lambda functions you add to
+your workflow). A role will be created by default, but you can supply an
+existing one as well.
+
+## Amazon States Language
+
+This library comes with a set of classes that model the [Amazon States
+Language](https://states-language.net/spec.html). The following State classes
+are supported:
+
+* `Task`
+* `Pass`
+* `Wait`
+* `Choice`
+* `Parallel`
+* `Succeed`
+* `Fail`
+
+An arbitrary JSON object (specified at execution start) is passed from state to
+state and transformed during the execution of the workflow. For more
+information, see the States Language spec.
+
+### Task
+
+A `Task` represents some work that needs to be done. The exact work to be
+done is determine by a class that implements `IStepFunctionsTask`, a collection
+of which can be found in the `@aws-cdk/aws-stepfunctions-tasks` package. A
+couple of the tasks available are:
+
+* `tasks.InvokeActivity` -- start an Activity (Activities represent a work
+  queue that you poll on a compute fleet you manage yourself)
+* `tasks.InvokeFunction` -- invoke a Lambda function with function ARN
+* `tasks.RunLambdaTask` -- call Lambda as integrated service with magic ARN
+* `tasks.PublishToTopic` -- publish a message to an SNS topic
+* `tasks.SendToQueue` -- send a message to an SQS queue
+* `tasks.RunEcsFargateTask`/`ecs.RunEcsEc2Task` -- run a container task,
+  depending on the type of capacity.
+* `tasks.SagemakerTrainTask` -- run a SageMaker training job
+* `tasks.SagemakerTransformTask` -- run a SageMaker transform job
+* `tasks.StartExecution` -- call StartExecution to a state machine of Step Functions
+* `tasks.EvaluateExpression` -- evaluate an expression referencing state paths
+
+Except `tasks.InvokeActivity` and `tasks.InvokeFunction`, the [service integration
+pattern](https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html)
+(`integrationPattern`) are supposed to be given as parameter when customers want
+to call integrated services within a Task state. The default value is `FIRE_AND_FORGET`.
+
+#### Task parameters from the state json
+
+Many tasks take parameters. The values for those can either be supplied
+directly in the workflow definition (by specifying their values), or at
+runtime by passing a value obtained from the static functions on `Data`,
+such as `Data.stringAt()`.
+
+If so, the value is taken from the indicated location in the state JSON,
+similar to (for example) `inputPath`.
+
+#### Lambda example - InvokeFunction
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+task = sfn.Task(self, "Invoke1",
+    task=tasks.InvokeFunction(my_lambda),
+    input_path="$.input",
+    timeout=Duration.minutes(5)
+)
+
+# Add a retry policy
+task.add_retry(
+    interval=Duration.seconds(5),
+    max_attempts=10
+)
+
+# Add an error handler
+task.add_catch(error_handler_state)
+
+# Set the next state
+task.next(next_state)
+```
+
+#### Lambda example - RunLambdaTask
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+task = sfn.Task(stack, "Invoke2",
+    task=tasks.RunLambdaTask(my_lambda,
+        integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
+        payload={
+            "token": sfn.Context.task_token
+        }
+    )
+)
+```
+
+#### SNS example
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_sns as sns
+
+# ...
+
+topic = sns.Topic(self, "Topic")
+
+# Use a field from the execution data as message.
+task1 = sfn.Task(self, "Publish1",
+    task=tasks.PublishToTopic(topic,
+        integration_pattern=sfn.ServiceIntegrationPattern.FIRE_AND_FORGET,
+        message=TaskInput.from_data_at("$.state.message")
+    )
+)
+
+# Combine a field from the execution data with
+# a literal object.
+task2 = sfn.Task(self, "Publish2",
+    task=tasks.PublishToTopic(topic,
+        message=TaskInput.from_object(
+            field1="somedata",
+            field2=Data.string_at("$.field2")
+        )
+    )
+)
+```
+
+#### SQS example
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_sqs as sqs
+
+# ...
+
+queue = sns.Queue(self, "Queue")
+
+# Use a field from the execution data as message.
+task1 = sfn.Task(self, "Send1",
+    task=tasks.SendToQueue(queue,
+        message_body=TaskInput.from_data_at("$.message"),
+        # Only for FIFO queues
+        message_group_id="1234"
+    )
+)
+
+# Combine a field from the execution data with
+# a literal object.
+task2 = sfn.Task(self, "Send2",
+    task=tasks.SendToQueue(queue,
+        message_body=TaskInput.from_object(
+            field1="somedata",
+            field2=Data.string_at("$.field2")
+        ),
+        # Only for FIFO queues
+        message_group_id="1234"
+    )
+)
+```
+
+#### ECS example
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_ecs as ecs
+
+# See examples in ECS library for initialization of 'cluster' and 'taskDefinition'
+
+fargate_task = ecs.RunEcsFargateTask(
+    cluster=cluster,
+    task_definition=task_definition,
+    container_overrides=[{
+        "container_name": "TheContainer",
+        "environment": [{
+            "name": "CONTAINER_INPUT",
+            "value": Data.string_at("$.valueFromStateData")
+        }
+        ]
+    }
+    ]
+)
+
+fargate_task.connections.allow_to_default_port(rds_cluster, "Read the database")
+
+task = sfn.Task(self, "CallFargate",
+    task=fargate_task
+)
+```
+
+#### SageMaker Transform example
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+transform_job = tasks.SagemakerTransformTask(transform_job_name, "MyTransformJob", model_name, "MyModelName", role, transform_input, {
+    "transform_data_source": {
+        "s3_data_source": {
+            "s3_uri": "s3://inputbucket/train",
+            "s3_data_type": S3DataType.S3Prefix
+        }
+    }
+}, transform_output, {
+    "s3_output_path": "s3://outputbucket/TransformJobOutputPath"
+}, transform_resources,
+    instance_count=1,
+    instance_type=ec2.InstanceType.of(ec2.InstanceClass.M4, ec2.InstanceSize.XLarge)
+)
+
+task = sfn.Task(self, "Batch Inference",
+    task=transform_job
+)
+```
+
+#### Step Functions example
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Define a state machine with one Pass state
+child = sfn.StateMachine(stack, "ChildStateMachine",
+    definition=sfn.Chain.start(sfn.Pass(stack, "PassState"))
+)
+
+# Include the state machine in a Task state with callback pattern
+task = sfn.Task(stack, "ChildTask",
+    task=tasks.ExecuteStateMachine(child,
+        integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
+        input={
+            "token": sfn.Context.task_token,
+            "foo": "bar"
+        },
+        name="MyExecutionName"
+    )
+)
+
+# Define a second state machine with the Task state above
+sfn.StateMachine(stack, "ParentStateMachine",
+    definition=task
+)
+```
+
+#### Eval example
+
+Use the `EvaluateExpression` to perform simple operations referencing state paths. The
+`expression` referenced in the task will be evaluated in a Lambda function
+(`eval()`). This allows you to not have to write Lambda code for simple operations.
+
+Example: convert a wait time from milliseconds to seconds, concat this in a message and wait:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+convert_to_seconds = sfn.Task(self, "Convert to seconds",
+    task=tasks.EvaluateExpression(expression="$.waitMilliseconds / 1000"),
+    result_path="$.waitSeconds"
+)
+
+create_message = sfn.Task(self, "Create message",
+    # Note: this is a string inside a string.
+    task=tasks.EvaluateExpression(expression="`Now waiting ${$.waitSeconds} seconds...`"),
+    result_path="$.message"
+)
+
+publish_message = sfn.Task(self, "Publish message",
+    task=tasks.PublishToTopic(topic,
+        message=sfn.TaskInput.from_data_at("$.message")
+    ),
+    result_path="$.sns"
+)
+
+wait = sfn.Wait(self, "Wait",
+    time=sfn.WaitTime.seconds_path("$.waitSeconds")
+)
+
+sfn.StateMachine(self, "StateMachine",
+    definition=convert_to_seconds.next(create_message).next(publish_message).next(wait)
+)
+```
+
+The `EvaluateExpression` supports a `runtime` prop to specify the Lambda
+runtime to use to evaluate the expression. Currently, the only runtime
+supported is `lambda.Runtime.NODEJS_10_X`.
+
+### Pass
+
+A `Pass` state does no work, but it can optionally transform the execution's
+JSON state.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Makes the current JSON state { ..., "subObject": { "hello": "world" } }
+pass = stepfunctions.Pass(self, "Add Hello World",
+    result={"hello": "world"},
+    result_path="$.subObject"
+)
+
+# Set the next state
+pass.next(next_state)
+```
+
+### Wait
+
+A `Wait` state waits for a given number of seconds, or until the current time
+hits a particular time. The time to wait may be taken from the execution's JSON
+state.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Wait until it's the time mentioned in the the state object's "triggerTime"
+# field.
+wait = stepfunctions.Wait(self, "Wait For Trigger Time",
+    time=stepfunctions.WaitTime.timestamp_path("$.triggerTime")
+)
+
+# Set the next state
+wait.next(start_the_work)
+```
+
+### Choice
+
+A `Choice` state can take a differen path through the workflow based on the
+values in the execution's JSON state:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+choice = stepfunctions.Choice(self, "Did it work?")
+
+# Add conditions with .when()
+choice.when(stepfunctions.Condition.string_equal("$.status", "SUCCESS"), success_state)
+choice.when(stepfunctions.Condition.number_greater_than("$.attempts", 5), failure_state)
+
+# Use .otherwise() to indicate what should be done if none of the conditions match
+choice.otherwise(try_again_state)
+```
+
+If you want to temporarily branch your workflow based on a condition, but have
+all branches come together and continuing as one (similar to how an `if ... then ... else` works in a programming language), use the `.afterwards()` method:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+choice = stepfunctions.Choice(self, "What color is it?")
+choice.when(stepfunctions.Condition.string_equal("$.color", "BLUE"), handle_blue_item)
+choice.when(stepfunctions.Condition.string_equal("$.color", "RED"), handle_red_item)
+choice.otherwise(handle_other_item_color)
+
+# Use .afterwards() to join all possible paths back together and continue
+choice.afterwards().next(ship_the_item)
+```
+
+If your `Choice` doesn't have an `otherwise()` and none of the conditions match
+the JSON state, a `NoChoiceMatched` error will be thrown. Wrap the state machine
+in a `Parallel` state if you want to catch and recover from this.
+
+### Parallel
+
+A `Parallel` state executes one or more subworkflows in parallel. It can also
+be used to catch and recover from errors in subworkflows.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+parallel = stepfunctions.Parallel(self, "Do the work in parallel")
+
+# Add branches to be executed in parallel
+parallel.branch(ship_item)
+parallel.branch(send_invoice)
+parallel.branch(restock)
+
+# Retry the whole workflow if something goes wrong
+parallel.add_retry(max_attempts=1)
+
+# How to recover from errors
+parallel.add_catch(send_failure_notification)
+
+# What to do in case everything succeeded
+parallel.next(close_order)
+```
+
+### Succeed
+
+Reaching a `Succeed` state terminates the state machine execution with a
+succesful status.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+success = stepfunctions.Succeed(self, "We did it!")
+```
+
+### Fail
+
+Reaching a `Fail` state terminates the state machine execution with a
+failure status. The fail state should report the reason for the failure.
+Failures can be caught by encompassing `Parallel` states.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+success = stepfunctions.Fail(self, "Fail",
+    error="WorkflowFailure",
+    cause="Something went wrong"
+)
+```
+
+## Task Chaining
+
+To make defining work flows as convenient (and readable in a top-to-bottom way)
+as writing regular programs, it is possible to chain most methods invocations.
+In particular, the `.next()` method can be repeated. The result of a series of
+`.next()` calls is called a **Chain**, and can be used when defining the jump
+targets of `Choice.on` or `Parallel.branch`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+definition = step1.next(step2).next(choice.when(condition1, step3.next(step4).next(step5)).otherwise(step6).afterwards()).next(parallel.branch(step7.next(step8)).branch(step9.next(step10))).next(finish)
+
+stepfunctions.StateMachine(self, "StateMachine",
+    definition=definition
+)
+```
+
+If you don't like the visual look of starting a chain directly off the first
+step, you can use `Chain.start`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+definition = stepfunctions.Chain.start(step1).next(step2).next(step3)
+```
+
+## State Machine Fragments
+
+It is possible to define reusable (or abstracted) mini-state machines by
+defining a construct that implements `IChainable`, which requires you to define
+two fields:
+
+* `startState: State`, representing the entry point into this state machine.
+* `endStates: INextable[]`, representing the (one or more) states that outgoing
+  transitions will be added to if you chain onto the fragment.
+
+Since states will be named after their construct IDs, you may need to prefix the
+IDs of states if you plan to instantiate the same state machine fragment
+multiples times (otherwise all states in every instantiation would have the same
+name).
+
+The class `StateMachineFragment` contains some helper functions (like
+`prefixStates()`) to make it easier for you to do this. If you define your state
+machine as a subclass of this, it will be convenient to use:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+class MyJob(stepfunctions.StateMachineFragment):
+
+    def __init__(self, parent, id, *, jobFlavor):
+        super().__init__(parent, id)
+
+        first = stepfunctions.Task(self, "First", ...)
+        # ...
+        last = stepfunctions.Task(self, "Last", ...)
+
+        self.start_state = first
+        self.end_states = [last]
+
+# Do 3 different variants of MyJob in parallel
+stepfunctions.Parallel(self, "All jobs").branch(MyJob(self, "Quick", job_flavor="quick").prefix_states()).branch(MyJob(self, "Medium", job_flavor="medium").prefix_states()).branch(MyJob(self, "Slow", job_flavor="slow").prefix_states())
+```
+
+## Activity
+
+**Activities** represent work that is done on some non-Lambda worker pool. The
+Step Functions workflow will submit work to this Activity, and a worker pool
+that you run yourself, probably on EC2, will pull jobs from the Activity and
+submit the results of individual jobs back.
+
+You need the ARN to do so, so if you use Activities be sure to pass the Activity
+ARN into your worker pool:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+activity = stepfunctions.Activity(self, "Activity")
+
+# Read this CloudFormation Output from your application and use it to poll for work on
+# the activity.
+cdk.CfnOutput(self, "ActivityArn", value=activity.activity_arn)
+```
+
+## Metrics
+
+`Task` object expose various metrics on the execution of that particular task. For example,
+to create an alarm on a particular task failing:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+cloudwatch.Alarm(self, "TaskAlarm",
+    metric=task.metric_failed(),
+    threshold=1,
+    evaluation_periods=1
+)
+```
+
+There are also metrics on the complete state machine:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+cloudwatch.Alarm(self, "StateMachineAlarm",
+    metric=state_machine.metric_failed(),
+    threshold=1,
+    evaluation_periods=1
+)
+```
+
+And there are metrics on the capacity of all state machines in your account:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+cloudwatch.Alarm(self, "ThrottledAlarm",
+    metric=StateTransitionMetrics.metric_throttled_events(),
+    threshold=10,
+    evaluation_periods=2
+)
+```
+
+## Future work
+
+Contributions welcome:
+
+* [ ] A single `LambdaTask` class that is both a `Lambda` and a `Task` in one
+  might make for a nice API.
+* [ ] Expression parser for Conditions.
+* [ ] Simulate state machines in unit tests.
+
+

@@ -1,0 +1,103 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-route53-targets
+Version: 1.18.0
+Summary: CDK Constructs for AWS Route53 Alias Targets
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-apigateway (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-cloudfront (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-elasticloadbalancing (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-elasticloadbalancingv2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-route53 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-s3 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.region-info (>=1.18.0,~=1.18)
+
+# Route53 Alias Record Targets for the CDK Route53 Library
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+This library contains Route53 Alias Record targets for:
+
+* API Gateway custom domains
+
+  ```python
+  # Example automatically generated. See https://github.com/aws/jsii/issues/826
+  route53.ARecord(self, "AliasRecord",
+      zone=zone,
+      target=route53.RecordTarget.from_alias(alias.ApiGateway(rest_api))
+  )
+  ```
+* CloudFront distributions
+
+  ```python
+  # Example automatically generated. See https://github.com/aws/jsii/issues/826
+  route53.ARecord(self, "AliasRecord",
+      zone=zone,
+      target=route53.RecordTarget.from_alias(alias.CloudFrontTarget(distribution))
+  )
+  ```
+* ELBv2 load balancers
+
+  ```python
+  # Example automatically generated. See https://github.com/aws/jsii/issues/826
+  route53.ARecord(self, "AliasRecord",
+      zone=zone,
+      target=route53.RecordTarget.from_alias(alias.LoadBalancerTarget(elbv2))
+  )
+  ```
+* Classic load balancers
+
+  ```python
+  # Example automatically generated. See https://github.com/aws/jsii/issues/826
+  route53.ARecord(self, "AliasRecord",
+      zone=zone,
+      target=route53.RecordTarget.from_alias(alias.ClassicLoadBalancerTarget(elb))
+  )
+  ```
+* S3 Bucket WebSite:
+
+**Important:** The Bucket name must strictly match the full DNS name.
+See [the Developer Guide](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/getting-started.html) for more info.
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+[recordName, domainName] = ["www", "example.com"]
+
+bucket_website = Bucket(self, "BucketWebsite",
+    bucket_name=[record_name, domain_name].join("."), # www.example.com
+    public_read_access=True,
+    website_index_document="index.html"
+)
+
+zone = HostedZone.from_lookup(self, "Zone", domain_name=domain_name)# example.com
+
+route53.ARecord(self, "AliasRecord",
+    zone=zone,
+    record_name=record_name, # www
+    target=route53.RecordTarget.from_alias(alias.BucketWebsiteTarget(bucket))
+)
+```
+
+See the documentation of `@aws-cdk/aws-route53` for more information.
+
+

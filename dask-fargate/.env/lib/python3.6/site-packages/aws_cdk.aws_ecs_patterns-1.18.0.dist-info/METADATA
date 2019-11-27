@@ -1,0 +1,261 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-ecs-patterns
+Version: 1.18.0
+Summary: CDK Constructs for AWS ECS
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-applicationautoscaling (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-certificatemanager (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ec2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ecs (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-elasticloadbalancingv2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-events (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-events-targets (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-route53 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-route53-targets (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-servicediscovery (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-sqs (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+
+# CDK Construct library for higher-level ECS Constructs
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+This library provides higher-level Amazon ECS constructs which follow common architectural patterns. It contains:
+
+* Application Load Balanced Services
+* Network Load Balanced Services
+* Queue Processing Services
+* Scheduled Tasks (cron jobs)
+* Additional Examples
+
+## Application Load Balanced Services
+
+To define an Amazon ECS service that is behind an application load balancer, instantiate one of the following:
+
+* `ApplicationLoadBalancedEc2Service`
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+load_balanced_ecs_service = ecs_patterns.ApplicationLoadBalancedEc2Service(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    task_image_options={
+        "image": ecs.ContainerImage.from_registry("test"),
+        "environment": {
+            "TEST_ENVIRONMENT_VARIABLE1": "test environment variable 1 value",
+            "TEST_ENVIRONMENT_VARIABLE2": "test environment variable 2 value"
+        }
+    },
+    desired_count=2
+)
+```
+
+* `ApplicationLoadBalancedFargateService`
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+load_balanced_fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    cpu=512,
+    task_image_options={
+        "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+    }
+)
+```
+
+Instead of providing a cluster you can specify a VPC and CDK will create a new ECS cluster.
+If you deploy multiple services CDK will only create one cluster per VPC.
+
+You can omit `cluster` and `vpc` to let CDK create a new VPC with two AZs and create a cluster inside this VPC.
+
+## Network Load Balanced Services
+
+To define an Amazon ECS service that is behind a network load balancer, instantiate one of the following:
+
+* `NetworkLoadBalancedEc2Service`
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+load_balanced_ecs_service = ecs_patterns.NetworkLoadBalancedEc2Service(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    task_image_options={
+        "image": ecs.ContainerImage.from_registry("test"),
+        "environment": {
+            "TEST_ENVIRONMENT_VARIABLE1": "test environment variable 1 value",
+            "TEST_ENVIRONMENT_VARIABLE2": "test environment variable 2 value"
+        }
+    },
+    desired_count=2
+)
+```
+
+* `NetworkLoadBalancedFargateService`
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+load_balanced_fargate_service = ecs_patterns.NetworkLoadBalancedFargateService(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    cpu=512,
+    task_image_options={
+        "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+    }
+)
+```
+
+The CDK will create a new Amazon ECS cluster if you specify a VPC and omit `cluster`. If you deploy multiple services the CDK will only create one cluster per VPC.
+
+If `cluster` and `vpc` are omitted, the CDK creates a new VPC with subnets in two Availability Zones and a cluster within this VPC.
+
+## Queue Processing Services
+
+To define a service that creates a queue and reads from that queue, instantiate one of the following:
+
+* `QueueProcessingEc2Service`
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+queue_processing_ec2_service = QueueProcessingEc2Service(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    image=ecs.ContainerImage.from_registry("test"),
+    command=["-c", "4", "amazon.com"],
+    enable_logging=False,
+    desired_task_count=2,
+    environment={
+        "TEST_ENVIRONMENT_VARIABLE1": "test environment variable 1 value",
+        "TEST_ENVIRONMENT_VARIABLE2": "test environment variable 2 value"
+    },
+    queue=queue,
+    max_scaling_capacity=5
+)
+```
+
+* `QueueProcessingFargateService`
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+queue_processing_fargate_service = QueueProcessingFargateService(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=512,
+    image=ecs.ContainerImage.from_registry("test"),
+    command=["-c", "4", "amazon.com"],
+    enable_logging=False,
+    desired_task_count=2,
+    environment={
+        "TEST_ENVIRONMENT_VARIABLE1": "test environment variable 1 value",
+        "TEST_ENVIRONMENT_VARIABLE2": "test environment variable 2 value"
+    },
+    queue=queue,
+    max_scaling_capacity=5
+)
+```
+
+## Scheduled Tasks
+
+To define a task that runs periodically, instantiate an `ScheduledEc2Task`:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# Instantiate an Amazon EC2 Task to run at a scheduled interval
+ecs_scheduled_task = ScheduledEc2Task(stack, "ScheduledTask",
+    cluster=cluster,
+    scheduled_ec2_task_image_options={
+        "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
+        "memory_limit_mi_b": 256,
+        "environment": {"name": "TRIGGER", "value": "CloudWatch Events"}
+    },
+    schedule=events.Schedule.expression("rate(1 minute)")
+)
+```
+
+## Additional Examples
+
+In addition to using the constructs, users can also add logic to customize these constructs:
+
+### Add Schedule-Based Auto-Scaling to an ApplicationLoadBalancedFargateService
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+from aws_cdk.aws_applicationautoscaling import Schedule
+from ..application_load_balanced_fargate_service import ApplicationLoadBalancedFargateService, ApplicationLoadBalancedFargateServiceProps
+
+load_balanced_fargate_service = ApplicationLoadBalancedFargateService(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    desired_count=1,
+    cpu=512,
+    task_image_options={
+        "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+    }
+)
+
+scalable_target = load_balanced_fargate_service.service.auto_scale_task_count(
+    min_capacity=5,
+    max_capacity=20
+)
+
+scalable_target.scale_on_schedule("DaytimeScaleDown",
+    schedule=Schedule.cron(hour="8", minute="0"),
+    min_capacity=1
+)
+
+scalable_target.scale_on_schedule("EveningRushScaleUp",
+    schedule=Schedule.cron(hour="20", minute="0"),
+    min_capacity=10
+)
+```
+
+### Add Metric-Based Auto-Scaling to an ApplicationLoadBalancedFargateService
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+from ..application_load_balanced_fargate_service import ApplicationLoadBalancedFargateService
+
+load_balanced_fargate_service = ApplicationLoadBalancedFargateService(stack, "Service",
+    cluster=cluster,
+    memory_limit_mi_b=1024,
+    desired_count=1,
+    cpu=512,
+    task_image_options={
+        "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+    }
+)
+
+scalable_target = load_balanced_fargate_service.service.auto_scale_task_count(
+    min_capacity=1,
+    max_capacity=20
+)
+
+scalable_target.scale_on_cpu_utilization("CpuScaling",
+    target_utilization_percent=50
+)
+
+scalable_target.scale_on_memory_utilization("MemoryScaling",
+    target_utilization_percent=50
+)
+```
+
+

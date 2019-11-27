@@ -1,0 +1,78 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-codecommit
+Version: 1.18.0
+Summary: CDK Constructs for AWS CodeCommit
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-events (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+
+## AWS CodeCommit Construct Library
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+AWS CodeCommit is a version control service that enables you to privately store and manage Git repositories in the AWS cloud.
+
+For further information on CodeCommit,
+see the [AWS CodeCommit documentation](https://docs.aws.amazon.com/codecommit).
+
+To add a CodeCommit Repository to your stack:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+import aws_cdk.aws_codecommit as codecommit
+
+repo = codecommit.Repository(self, "Repository",
+    repository_name="MyRepositoryName",
+    description="Some description."
+)
+```
+
+To add an Amazon SNS trigger to your repository:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# trigger is established for all repository actions on all branches by default.
+repo.notify("arn:aws:sns:*:123456789012:my_topic")
+```
+
+## Events
+
+CodeCommit repositories emit Amazon CloudWatch events for certain activities.
+Use the `repo.onXxx` methods to define rules that trigger on these events
+and invoke targets as a result:
+
+```python
+# Example automatically generated. See https://github.com/aws/jsii/issues/826
+# starts a CodeBuild project when a commit is pushed to the "master" branch of the repo
+repo.on_commit("CommitToMaster",
+    target=targets.CodeBuildProject(project),
+    branches=["master"]
+)
+
+# publishes a message to an Amazon SNS topic when a comment is made on a pull request
+rule = repo.on_comment_on_pull_request("CommentOnPullRequest",
+    target=targets.SnsTopic(my_topic)
+)
+```
+
+

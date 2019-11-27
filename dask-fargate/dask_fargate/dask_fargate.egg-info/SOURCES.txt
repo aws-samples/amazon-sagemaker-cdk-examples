@@ -1,0 +1,6 @@
+README.md
+dask_fargate/dask_fargate.egg-info/PKG-INFO
+dask_fargate/dask_fargate.egg-info/SOURCES.txt
+dask_fargate/dask_fargate.egg-info/dependency_links.txt
+dask_fargate/dask_fargate.egg-info/requires.txt
+dask_fargate/dask_fargate.egg-info/top_level.txt

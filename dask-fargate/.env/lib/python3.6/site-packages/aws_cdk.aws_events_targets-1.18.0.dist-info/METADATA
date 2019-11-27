@@ -1,0 +1,61 @@
+Metadata-Version: 2.1
+Name: aws-cdk.aws-events-targets
+Version: 1.18.0
+Summary: Event targets for AWS CloudWatch Events
+Home-page: https://github.com/aws/aws-cdk
+Author: Amazon Web Services
+License: Apache-2.0
+Project-URL: Source, https://github.com/aws/aws-cdk.git
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: jsii (~=0.20.8)
+Requires-Dist: publication (>=0.0.3)
+Requires-Dist: aws-cdk.aws-cloudformation (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-codebuild (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-codepipeline (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ec2 (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-ecs (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-events (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-iam (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-lambda (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-sns (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-sns-subscriptions (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-sqs (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.aws-stepfunctions (>=1.18.0,~=1.18)
+Requires-Dist: aws-cdk.core (>=1.18.0,~=1.18)
+
+# Event Targets for AWS CloudWatch Events
+
+<!--BEGIN STABILITY BANNER-->---
+
+
+![Stability: Stable](https://img.shields.io/badge/stability-Stable-success.svg?style=for-the-badge)
+
+---
+<!--END STABILITY BANNER-->
+
+This library contains integration classes to send AWS CloudWatch Events to any
+number of supported AWS Services. Instances of these classes should be passed
+to the `rule.addTarget()` method.
+
+Currently supported are:
+
+* Start a CodeBuild build
+* Start a CodePipeline pipeline
+* Run an ECS task
+* Invoke a Lambda function
+* Publish a message to an SNS topic
+* Send a message to an SQS queue
+* Start a StepFunctions state machine
+* Make an AWS API call
+
+See the README of the `@aws-cdk/aws-events` library for more information on
+CloudWatch Events.
+
+
