@@ -582,7 +582,7 @@
         "ContainerDefinitions": [
           {
             "Essential": true,
-            "Image": "amazon/amazon-ecs-sample",
+            "Image": "daskdev/dask-notebook:latest",
             "LogConfiguration": {
               "LogDriver": "awslogs",
               "Options": {

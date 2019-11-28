@@ -716,7 +716,7 @@
                         "containerDefinitions": [
                           {
                             "essential": true,
-                            "image": "amazon/amazon-ecs-sample",
+                            "image": "daskdev/dask-notebook:latest",
                             "name": "web",
                             "portMappings": [
                               {
