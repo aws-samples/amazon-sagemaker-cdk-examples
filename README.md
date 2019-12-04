@@ -51,3 +51,12 @@ These projects have been tested with CDK version 1.0.0
 1. Set up dask on Fargate with Sagemaker notebooks for distributed preprocessing
 2. Dataset/ experiment/ model versioning
 3. PLEASE SUBMIT IDEA AS AN ISSUE
+
+
+## Note on bootstrapping
+
+If you get this error
+"This stack uses assets, so the toolkit stack must be deployed to the environment (Run "cdk bootstrap aws://unknown-account/unknown-region")"
+
+Run the cdk bootstrap command as seen above. This is true so far for the dask-fargate project
+
