@@ -1,4 +1,125 @@
+Parameters:
+  MyDockerImageName26848D9A:
+    Type: String
+    Description: ECR repository name and tag asset "dask-fargate/MyDocker"
+  AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3Bucket92AB06B6:
+    Type: String
+    Description: S3 bucket for asset "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code"
+  AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276:
+    Type: String
+    Description: S3 key for asset version "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code"
+  AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeArtifactHash8BCBAA49:
+    Type: String
+    Description: Artifact hash for asset "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code"
 Resources:
+  MyDockerAdoptRepositoryF82088EA:
+    Type: Custom::ECRAdoptedRepository
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9
+          - Arn
+      RepositoryName:
+        Fn::Select:
+          - 0
+          - Fn::Split:
+              - "@sha256:"
+              - Ref: MyDockerImageName26848D9A
+    DependsOn:
+      - AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C
+      - AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: dask-fargate/MyDocker/AdoptRepository/Resource/Default
+  AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - lambda.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/ServiceRole/Resource
+  AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecr:GetRepositoryPolicy
+              - ecr:SetRepositoryPolicy
+              - ecr:DeleteRepository
+              - ecr:ListImages
+              - ecr:BatchDeleteImage
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - ":ecr:"
+                  - Ref: AWS::Region
+                  - ":"
+                  - Ref: AWS::AccountId
+                  - :repository/
+                  - Fn::Select:
+                      - 0
+                      - Fn::Split:
+                          - "@sha256:"
+                          - Ref: MyDockerImageName26848D9A
+        Version: "2012-10-17"
+      PolicyName: AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C
+      Roles:
+        - Ref: AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17
+    Metadata:
+      aws:cdk:path: dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/ServiceRole/DefaultPolicy/Resource
+  AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3Bucket92AB06B6
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276
+      Handler: handler.handler
+      Role:
+        Fn::GetAtt:
+          - AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17
+          - Arn
+      Runtime: nodejs8.10
+      Timeout: 300
+    DependsOn:
+      - AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C
+      - AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17
+    Metadata:
+      aws:cdk:path: dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Resource
+      aws:asset:path: asset.a65ac4beaa2b5a7b20eebf3b7c5c1c886b71428afa377e02dab0d10ab3be57e7
+      aws:asset:property: Code
   MyVpcF9F0CA6F:
     Type: AWS::EC2::VPC
     Properties:
@@ -268,134 +389,33 @@ Resources:
         Ref: MyVpcIGW5C4A4F63
     Metadata:
       aws:cdk:path: dask-fargate/MyVpc/VPCGW
-  MyCluster4C1BA579:
-    Type: AWS::ECS::Cluster
-    Metadata:
-      aws:cdk:path: dask-fargate/MyCluster/Resource
-  DaskFargateStackLB1B2F5C40:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Scheme: internet-facing
-      SecurityGroups:
-        - Fn::GetAtt:
-            - DaskFargateStackLBSecurityGroup2073863A
-            - GroupId
-      Subnets:
-        - Ref: MyVpcPublicSubnet1SubnetF6608456
-        - Ref: MyVpcPublicSubnet2Subnet492B6BFB
-      Type: application
-    DependsOn:
-      - MyVpcPublicSubnet1DefaultRoute95FDF9EB
-      - MyVpcPublicSubnet2DefaultRoute052936F6
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/LB/Resource
-  DaskFargateStackLBSecurityGroup2073863A:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Automatically created Security Group for ELB daskfargateDaskFargateStackLB59F6FAF5
-      SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow from anyone on port 80
-          FromPort: 80
-          IpProtocol: tcp
-          ToPort: 80
-      VpcId:
-        Ref: MyVpcF9F0CA6F
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/LB/SecurityGroup/Resource
-  DaskFargateStackLBSecurityGrouptodaskfargateDaskFargateStackServiceSecurityGroup13BCEC1780228473E6:
-    Type: AWS::EC2::SecurityGroupEgress
-    Properties:
-      GroupId:
-        Fn::GetAtt:
-          - DaskFargateStackLBSecurityGroup2073863A
-          - GroupId
-      IpProtocol: tcp
-      Description: Load balancer to target
-      DestinationSecurityGroupId:
-        Fn::GetAtt:
-          - DaskFargateStackServiceSecurityGroup108E501D
-          - GroupId
-      FromPort: 80
-      ToPort: 80
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/LB/SecurityGroup/to daskfargateDaskFargateStackServiceSecurityGroup13BCEC17:80
-  DaskFargateStackLBPublicListener251D19E1:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      DefaultActions:
-        - TargetGroupArn:
-            Ref: DaskFargateStackLBPublicListenerECSGroupC51C4C1E
-          Type: forward
-      LoadBalancerArn:
-        Ref: DaskFargateStackLB1B2F5C40
-      Port: 80
-      Protocol: HTTP
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/LB/PublicListener/Resource
-  DaskFargateStackLBPublicListenerECSGroupC51C4C1E:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      Port: 80
-      Protocol: HTTP
-      TargetType: ip
-      VpcId:
-        Ref: MyVpcF9F0CA6F
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/LB/PublicListener/ECSGroup/Resource
-  DaskFargateStackTaskDefTaskRole9974B509:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-        Version: "2012-10-17"
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/TaskDef/TaskRole/Resource
-  DaskFargateStackTaskDefDE7C0531:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      ContainerDefinitions:
-        - Essential: true
-          Image: daskdev/dask-notebook:latest
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group:
-                Ref: DaskFargateStackTaskDefwebLogGroupD3E1F55E
-              awslogs-stream-prefix: DaskFargateStack
-              awslogs-region:
-                Ref: AWS::Region
-          Name: web
-          PortMappings:
-            - ContainerPort: 80
-              Protocol: tcp
-      Cpu: "512"
-      ExecutionRoleArn:
-        Fn::GetAtt:
-          - DaskFargateStackTaskDefExecutionRole67E4E660
-          - Arn
-      Family: daskfargateDaskFargateStackTaskDef825FE465
-      Memory: "2048"
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-      TaskRoleArn:
-        Fn::GetAtt:
-          - DaskFargateStackTaskDefTaskRole9974B509
-          - Arn
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/TaskDef/Resource
-  DaskFargateStackTaskDefwebLogGroupD3E1F55E:
+  SlogGroup1493DE30:
     Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: SlogGroup
+      RetentionInDays: 731
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/TaskDef/web/LogGroup/Resource
-  DaskFargateStackTaskDefExecutionRole67E4E660:
+      aws:cdk:path: dask-fargate/SlogGroup/Resource
+  WlogGroup18A8F3C1:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: WlogGroup
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: dask-fargate/WlogGroup/Resource
+  MyNamespaceD0BB8558:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: local-dask
+      Vpc:
+        Ref: MyVpcF9F0CA6F
+    Metadata:
+      aws:cdk:path: dask-fargate/MyNamespace/Resource
+  ECSExecutionRoleA044C6CA:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -403,111 +423,87 @@ Resources:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              Service: ecs-tasks.amazonaws.com
+              Service:
+                Fn::Join:
+                  - ""
+                  - - ecs-tasks.
+                    - Ref: AWS::URLSuffix
         Version: "2012-10-17"
     Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/TaskDef/ExecutionRole/Resource
-  DaskFargateStackTaskDefExecutionRoleDefaultPolicyF41124E9:
+      aws:cdk:path: dask-fargate/ECSExecutionRole/Resource
+  ECSExecutionPolicy30B4C38F:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:GetAuthorizationToken
               - logs:CreateLogStream
               - logs:PutLogEvents
             Effect: Allow
-            Resource:
-              Fn::GetAtt:
-                - DaskFargateStackTaskDefwebLogGroupD3E1F55E
-                - Arn
+            Resource: "*"
         Version: "2012-10-17"
-      PolicyName: DaskFargateStackTaskDefExecutionRoleDefaultPolicyF41124E9
+      PolicyName: ECSExecutionPolicy
       Roles:
-        - Ref: DaskFargateStackTaskDefExecutionRole67E4E660
+        - Ref: ECSExecutionRoleA044C6CA
     Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/TaskDef/ExecutionRole/DefaultPolicy/Resource
-  DaskFargateStackServiceF8DC59C7:
-    Type: AWS::ECS::Service
+      aws:cdk:path: dask-fargate/ECSExecutionPolicy/Resource
+  DaskCluster3EF020CE:
+    Type: AWS::ECS::Cluster
     Properties:
-      TaskDefinition:
-        Ref: DaskFargateStackTaskDefDE7C0531
-      Cluster:
-        Ref: MyCluster4C1BA579
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 50
-      DesiredCount: 6
-      EnableECSManagedTags: false
-      HealthCheckGracePeriodSeconds: 60
-      LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: web
-          ContainerPort: 80
-          TargetGroupArn:
-            Ref: DaskFargateStackLBPublicListenerECSGroupC51C4C1E
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: DISABLED
-          SecurityGroups:
-            - Fn::GetAtt:
-                - DaskFargateStackServiceSecurityGroup108E501D
-                - GroupId
-          Subnets:
-            - Ref: MyVpcPrivateSubnet1Subnet5057CF7E
-            - Ref: MyVpcPrivateSubnet2Subnet0040C983
-    DependsOn:
-      - DaskFargateStackLBPublicListenerECSGroupC51C4C1E
-      - DaskFargateStackLBPublicListener251D19E1
+      ClusterName: Fargate-Dask-Cluster
     Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/Service/Service
-  DaskFargateStackServiceSecurityGroup108E501D:
-    Type: AWS::EC2::SecurityGroup
+      aws:cdk:path: dask-fargate/DaskCluster/Resource
+  serviceRegistryScheduler88D30AA9:
+    Type: AWS::ServiceDiscovery::Service
     Properties:
-      GroupDescription: dask-fargate/DaskFargateStack/Service/SecurityGroup
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow all outbound traffic by default
-          IpProtocol: "-1"
-      VpcId:
-        Ref: MyVpcF9F0CA6F
-    Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/Service/SecurityGroup/Resource
-  DaskFargateStackServiceSecurityGroupfromdaskfargateDaskFargateStackLBSecurityGroupB9D883FF801AACFEAD:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      IpProtocol: tcp
-      Description: Load balancer to target
-      FromPort: 80
-      GroupId:
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        NamespaceId:
+          Fn::GetAtt:
+            - MyNamespaceD0BB8558
+            - Id
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 10
+      Name: Dask-Scheduler
+      NamespaceId:
         Fn::GetAtt:
-          - DaskFargateStackServiceSecurityGroup108E501D
-          - GroupId
-      SourceSecurityGroupId:
-        Fn::GetAtt:
-          - DaskFargateStackLBSecurityGroup2073863A
-          - GroupId
-      ToPort: 80
+          - MyNamespaceD0BB8558
+          - Id
     Metadata:
-      aws:cdk:path: dask-fargate/DaskFargateStack/Service/SecurityGroup/from daskfargateDaskFargateStackLBSecurityGroupB9D883FF:80
+      aws:cdk:path: dask-fargate/serviceRegistryScheduler/Resource
+  workerRegistryScheduler35945B1F:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        NamespaceId:
+          Fn::GetAtt:
+            - MyNamespaceD0BB8558
+            - Id
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 10
+      Name: Dask-Worker
+      NamespaceId:
+        Fn::GetAtt:
+          - MyNamespaceD0BB8558
+          - Id
+    Metadata:
+      aws:cdk:path: dask-fargate/workerRegistryScheduler/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Modules: aws-cdk=1.18.0,@aws-cdk/assets=1.18.0,@aws-cdk/aws-apigateway=1.18.0,@aws-cdk/aws-applicationautoscaling=1.18.0,@aws-cdk/aws-autoscaling=1.18.0,@aws-cdk/aws-autoscaling-common=1.18.0,@aws-cdk/aws-autoscaling-hooktargets=1.18.0,@aws-cdk/aws-certificatemanager=1.18.0,@aws-cdk/aws-cloudformation=1.18.0,@aws-cdk/aws-cloudfront=1.18.0,@aws-cdk/aws-cloudwatch=1.18.0,@aws-cdk/aws-codebuild=1.18.0,@aws-cdk/aws-codecommit=1.18.0,@aws-cdk/aws-codepipeline=1.18.0,@aws-cdk/aws-ec2=1.18.0,@aws-cdk/aws-ecr=1.18.0,@aws-cdk/aws-ecr-assets=1.18.0,@aws-cdk/aws-ecs=1.18.0,@aws-cdk/aws-ecs-patterns=1.18.0,@aws-cdk/aws-elasticloadbalancing=1.18.0,@aws-cdk/aws-elasticloadbalancingv2=1.18.0,@aws-cdk/aws-events=1.18.0,@aws-cdk/aws-events-targets=1.18.0,@aws-cdk/aws-iam=1.18.0,@aws-cdk/aws-kms=1.18.0,@aws-cdk/aws-lambda=1.18.0,@aws-cdk/aws-logs=1.18.0,@aws-cdk/aws-route53=1.18.0,@aws-cdk/aws-route53-targets=1.18.0,@aws-cdk/aws-s3=1.18.0,@aws-cdk/aws-s3-assets=1.18.0,@aws-cdk/aws-secretsmanager=1.18.0,@aws-cdk/aws-servicediscovery=1.18.0,@aws-cdk/aws-sns=1.18.0,@aws-cdk/aws-sns-subscriptions=1.18.0,@aws-cdk/aws-sqs=1.18.0,@aws-cdk/aws-ssm=1.18.0,@aws-cdk/aws-stepfunctions=1.18.0,@aws-cdk/core=1.18.0,@aws-cdk/cx-api=1.18.0,@aws-cdk/region-info=1.18.0,jsii-runtime=Python/3.6.5
+      Modules: aws-cdk=1.18.0,@aws-cdk/assets=1.0.0,@aws-cdk/aws-apigateway=1.0.0,@aws-cdk/aws-applicationautoscaling=1.0.0,@aws-cdk/aws-autoscaling=1.0.0,@aws-cdk/aws-autoscaling-common=1.0.0,@aws-cdk/aws-autoscaling-hooktargets=1.0.0,@aws-cdk/aws-certificatemanager=1.0.0,@aws-cdk/aws-cloudformation=1.0.0,@aws-cdk/aws-cloudfront=1.0.0,@aws-cdk/aws-cloudwatch=1.0.0,@aws-cdk/aws-codebuild=1.0.0,@aws-cdk/aws-codecommit=1.0.0,@aws-cdk/aws-codepipeline=1.0.0,@aws-cdk/aws-ec2=1.0.0,@aws-cdk/aws-ecr=1.0.0,@aws-cdk/aws-ecr-assets=1.0.0,@aws-cdk/aws-ecs=1.0.0,@aws-cdk/aws-ecs-patterns=1.0.0,@aws-cdk/aws-elasticloadbalancing=1.0.0,@aws-cdk/aws-elasticloadbalancingv2=1.0.0,@aws-cdk/aws-events=1.0.0,@aws-cdk/aws-events-targets=1.0.0,@aws-cdk/aws-iam=1.0.0,@aws-cdk/aws-kms=1.0.0,@aws-cdk/aws-lambda=1.0.0,@aws-cdk/aws-logs=1.0.0,@aws-cdk/aws-route53=1.0.0,@aws-cdk/aws-route53-targets=1.0.0,@aws-cdk/aws-s3=1.0.0,@aws-cdk/aws-s3-assets=1.0.0,@aws-cdk/aws-secretsmanager=1.0.0,@aws-cdk/aws-servicediscovery=1.0.0,@aws-cdk/aws-sns=1.0.0,@aws-cdk/aws-sns-subscriptions=1.0.0,@aws-cdk/aws-sqs=1.0.0,@aws-cdk/aws-ssm=1.0.0,@aws-cdk/aws-stepfunctions=1.0.0,@aws-cdk/core=1.0.0,@aws-cdk/custom-resources=1.0.0,@aws-cdk/cx-api=1.0.0,@aws-cdk/region-info=1.0.0,jsii-runtime=Python/3.6.5
     Condition: CDKMetadataAvailable
-Outputs:
-  DaskFargateStackLoadBalancerDNSDD718B1E:
-    Value:
-      Fn::GetAtt:
-        - DaskFargateStackLB1B2F5C40
-        - DNSName
-  DaskFargateStackServiceURLC47C2D35:
-    Value:
-      Fn::Join:
-        - ""
-        - - http://
-          - Fn::GetAtt:
-              - DaskFargateStackLB1B2F5C40
-              - DNSName
 Conditions:
   CDKMetadataAvailable:
     Fn::Or:

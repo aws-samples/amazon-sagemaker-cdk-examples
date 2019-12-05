@@ -716,7 +716,7 @@
                         "containerDefinitions": [
                           {
                             "essential": true,
-                            "image": "daskdev/dask-notebook:latest",
+                            "image": "daskdev/dask:0.19.4",
                             "name": "web",
                             "portMappings": [
                               {
