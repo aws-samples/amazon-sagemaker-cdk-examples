@@ -1,223 +1,5 @@
 {
-  "Parameters": {
-    "MyDockerImageName26848D9A": {
-      "Type": "String",
-      "Description": "ECR repository name and tag asset \"dask-fargate/MyDocker\""
-    },
-    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3Bucket92AB06B6": {
-      "Type": "String",
-      "Description": "S3 bucket for asset \"dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code\""
-    },
-    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276": {
-      "Type": "String",
-      "Description": "S3 key for asset version \"dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code\""
-    },
-    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeArtifactHash8BCBAA49": {
-      "Type": "String",
-      "Description": "Artifact hash for asset \"dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code\""
-    }
-  },
   "Resources": {
-    "MyDockerAdoptRepositoryF82088EA": {
-      "Type": "Custom::ECRAdoptedRepository",
-      "Properties": {
-        "ServiceToken": {
-          "Fn::GetAtt": [
-            "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9",
-            "Arn"
-          ]
-        },
-        "RepositoryName": {
-          "Fn::Select": [
-            0,
-            {
-              "Fn::Split": [
-                "@sha256:",
-                {
-                  "Ref": "MyDockerImageName26848D9A"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      "DependsOn": [
-        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
-        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
-      ],
-      "UpdateReplacePolicy": "Delete",
-      "DeletionPolicy": "Delete",
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/MyDocker/AdoptRepository/Resource/Default"
-      }
-    },
-    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "lambda.",
-                      {
-                        "Ref": "AWS::URLSuffix"
-                      }
-                    ]
-                  ]
-                }
-              }
-            }
-          ],
-          "Version": "2012-10-17"
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-              ]
-            ]
-          }
-        ]
-      },
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/ServiceRole/Resource"
-      }
-    },
-    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C": {
-      "Type": "AWS::IAM::Policy",
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "ecr:GetRepositoryPolicy",
-                "ecr:SetRepositoryPolicy",
-                "ecr:DeleteRepository",
-                "ecr:ListImages",
-                "ecr:BatchDeleteImage"
-              ],
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:",
-                    {
-                      "Ref": "AWS::Partition"
-                    },
-                    ":ecr:",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    ":",
-                    {
-                      "Ref": "AWS::AccountId"
-                    },
-                    ":repository/",
-                    {
-                      "Fn::Select": [
-                        0,
-                        {
-                          "Fn::Split": [
-                            "@sha256:",
-                            {
-                              "Ref": "MyDockerImageName26848D9A"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                ]
-              }
-            }
-          ],
-          "Version": "2012-10-17"
-        },
-        "PolicyName": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
-        "Roles": [
-          {
-            "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
-          }
-        ]
-      },
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/ServiceRole/DefaultPolicy/Resource"
-      }
-    },
-    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": {
-            "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3Bucket92AB06B6"
-          },
-          "S3Key": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Fn::Select": [
-                    0,
-                    {
-                      "Fn::Split": [
-                        "||",
-                        {
-                          "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "Fn::Select": [
-                    1,
-                    {
-                      "Fn::Split": [
-                        "||",
-                        {
-                          "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            ]
-          }
-        },
-        "Handler": "handler.handler",
-        "Role": {
-          "Fn::GetAtt": [
-            "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17",
-            "Arn"
-          ]
-        },
-        "Runtime": "nodejs8.10",
-        "Timeout": 300
-      },
-      "DependsOn": [
-        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
-        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
-      ],
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Resource",
-        "aws:asset:path": "asset.a65ac4beaa2b5a7b20eebf3b7c5c1c886b71428afa377e02dab0d10ab3be57e7",
-        "aws:asset:property": "Code"
-      }
-    },
     "MyVpcF9F0CA6F": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
@@ -682,18 +464,6 @@
         "aws:cdk:path": "dask-fargate/WlogGroup/Resource"
       }
     },
-    "MyNamespaceD0BB8558": {
-      "Type": "AWS::ServiceDiscovery::PrivateDnsNamespace",
-      "Properties": {
-        "Name": "local-dask",
-        "Vpc": {
-          "Ref": "MyVpcF9F0CA6F"
-        }
-      },
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/MyNamespace/Resource"
-      }
-    },
     "ECSExecutionRoleA044C6CA": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -724,6 +494,111 @@
         "aws:cdk:path": "dask-fargate/ECSExecutionRole/Resource"
       }
     },
+    "ECSExecutionRoleDefaultPolicy91A8E3CE": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":ecr:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":repository/",
+                    {
+                      "Fn::GetAtt": [
+                        "taskDefinitionSchedulerMySchedulerImageAssetImageAdoptRepositoryCECF9A57",
+                        "RepositoryName"
+                      ]
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "Action": "ecr:GetAuthorizationToken",
+              "Effect": "Allow",
+              "Resource": "*"
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SlogGroup1493DE30",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":ecr:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":repository/",
+                    {
+                      "Fn::GetAtt": [
+                        "taskDefinitionWorkerMyWorkerImageAssetImageAdoptRepositoryBF896596",
+                        "RepositoryName"
+                      ]
+                    }
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "ECSExecutionRoleDefaultPolicy91A8E3CE",
+        "Roles": [
+          {
+            "Ref": "ECSExecutionRoleA044C6CA"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/ECSExecutionRole/DefaultPolicy/Resource"
+      }
+    },
     "ECSExecutionPolicy30B4C38F": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
@@ -736,7 +611,8 @@
                 "ecr:BatchGetImage",
                 "ecr:GetAuthorizationToken",
                 "logs:CreateLogStream",
-                "logs:PutLogEvents"
+                "logs:PutLogEvents",
+                "sagemaker:*"
               ],
               "Effect": "Allow",
               "Resource": "*"
@@ -764,6 +640,18 @@
         "aws:cdk:path": "dask-fargate/DaskCluster/Resource"
       }
     },
+    "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1": {
+      "Type": "AWS::ServiceDiscovery::PrivateDnsNamespace",
+      "Properties": {
+        "Name": "local-dask",
+        "Vpc": {
+          "Ref": "MyVpcF9F0CA6F"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/DaskCluster/DefaultServiceDiscoveryNamespace/Resource"
+      }
+    },
     "serviceRegistryScheduler88D30AA9": {
       "Type": "AWS::ServiceDiscovery::Service",
       "Properties": {
@@ -776,7 +664,7 @@
           ],
           "NamespaceId": {
             "Fn::GetAtt": [
-              "MyNamespaceD0BB8558",
+              "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
               "Id"
             ]
           },
@@ -788,7 +676,7 @@
         "Name": "Dask-Scheduler",
         "NamespaceId": {
           "Fn::GetAtt": [
-            "MyNamespaceD0BB8558",
+            "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
             "Id"
           ]
         }
@@ -809,7 +697,7 @@
           ],
           "NamespaceId": {
             "Fn::GetAtt": [
-              "MyNamespaceD0BB8558",
+              "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
               "Id"
             ]
           },
@@ -821,7 +709,7 @@
         "Name": "Dask-Worker",
         "NamespaceId": {
           "Fn::GetAtt": [
-            "MyNamespaceD0BB8558",
+            "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
             "Id"
           ]
         }
@@ -829,6 +717,917 @@
       "Metadata": {
         "aws:cdk:path": "dask-fargate/workerRegistryScheduler/Resource"
       }
+    },
+    "taskDefinitionScheduler2F1AF045": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Command": [
+              "dask-scheduler"
+            ],
+            "Cpu": 1024,
+            "Essential": true,
+            "Image": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::Select": [
+                      4,
+                      {
+                        "Fn::Split": [
+                          ":",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":ecr:",
+                                {
+                                  "Ref": "AWS::Region"
+                                },
+                                ":",
+                                {
+                                  "Ref": "AWS::AccountId"
+                                },
+                                ":repository/",
+                                {
+                                  "Fn::GetAtt": [
+                                    "taskDefinitionSchedulerMySchedulerImageAssetImageAdoptRepositoryCECF9A57",
+                                    "RepositoryName"
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  ".dkr.ecr.",
+                  {
+                    "Fn::Select": [
+                      3,
+                      {
+                        "Fn::Split": [
+                          ":",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":ecr:",
+                                {
+                                  "Ref": "AWS::Region"
+                                },
+                                ":",
+                                {
+                                  "Ref": "AWS::AccountId"
+                                },
+                                ":repository/",
+                                {
+                                  "Fn::GetAtt": [
+                                    "taskDefinitionSchedulerMySchedulerImageAssetImageAdoptRepositoryCECF9A57",
+                                    "RepositoryName"
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  ".amazonaws.com/",
+                  {
+                    "Fn::GetAtt": [
+                      "taskDefinitionSchedulerMySchedulerImageAssetImageAdoptRepositoryCECF9A57",
+                      "RepositoryName"
+                    ]
+                  },
+                  "@sha256:",
+                  {
+                    "Fn::Select": [
+                      1,
+                      {
+                        "Fn::Split": [
+                          "@sha256:",
+                          {
+                            "Ref": "taskDefinitionSchedulerMySchedulerImageAssetImageImageName1EEF85D5"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            },
+            "Links": [],
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "SlogGroup1493DE30"
+                },
+                "awslogs-stream-prefix": "ecs",
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                }
+              }
+            },
+            "Memory": 2048,
+            "MemoryReservation": 2048,
+            "MountPoints": [],
+            "Name": "MySchedulerImage",
+            "PortMappings": [],
+            "Ulimits": [],
+            "VolumesFrom": []
+          }
+        ],
+        "Cpu": "1024",
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "ECSExecutionRoleA044C6CA",
+            "Arn"
+          ]
+        },
+        "Family": "Dask-Scheduler",
+        "Memory": "2048",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "TaskRoleArn": {
+          "Fn::GetAtt": [
+            "ECSExecutionRoleA044C6CA",
+            "Arn"
+          ]
+        },
+        "Volumes": []
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/taskDefinitionScheduler/Resource"
+      }
+    },
+    "taskDefinitionSchedulerMySchedulerImageAssetImageAdoptRepositoryCECF9A57": {
+      "Type": "Custom::ECRAdoptedRepository",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9",
+            "Arn"
+          ]
+        },
+        "RepositoryName": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::Split": [
+                "@sha256:",
+                {
+                  "Ref": "taskDefinitionSchedulerMySchedulerImageAssetImageImageName1EEF85D5"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "DependsOn": [
+        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
+        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/taskDefinitionScheduler/MySchedulerImage/AssetImage/AdoptRepository/Resource/Default"
+      }
+    },
+    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "lambda.",
+                      {
+                        "Ref": "AWS::URLSuffix"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/ServiceRole/Resource"
+      }
+    },
+    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ecr:GetRepositoryPolicy",
+                "ecr:SetRepositoryPolicy",
+                "ecr:DeleteRepository",
+                "ecr:ListImages",
+                "ecr:BatchDeleteImage"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":ecr:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":repository/",
+                    {
+                      "Fn::Select": [
+                        0,
+                        {
+                          "Fn::Split": [
+                            "@sha256:",
+                            {
+                              "Ref": "taskDefinitionSchedulerMySchedulerImageAssetImageImageName1EEF85D5"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "Action": [
+                "ecr:GetRepositoryPolicy",
+                "ecr:SetRepositoryPolicy",
+                "ecr:DeleteRepository",
+                "ecr:ListImages",
+                "ecr:BatchDeleteImage"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":ecr:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":repository/",
+                    {
+                      "Fn::Select": [
+                        0,
+                        {
+                          "Fn::Split": [
+                            "@sha256:",
+                            {
+                              "Ref": "taskDefinitionWorkerMyWorkerImageAssetImageImageName6EA10C1C"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
+        "Roles": [
+          {
+            "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/ServiceRole/DefaultPolicy/Resource"
+      }
+    },
+    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3Bucket92AB06B6"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::Select": [
+                    0,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Fn::Select": [
+                    1,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        },
+        "Handler": "handler.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs8.10",
+        "Timeout": 300
+      },
+      "DependsOn": [
+        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
+        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Resource",
+        "aws:asset:path": "asset.a65ac4beaa2b5a7b20eebf3b7c5c1c886b71428afa377e02dab0d10ab3be57e7",
+        "aws:asset:property": "Code"
+      }
+    },
+    "taskDefinitionWorkerA921838E": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Command": [
+              "dask-worker",
+              "dask-scheduler.local-dask:8786",
+              "--memory-limit 1800MB",
+              "--worker-port 9000",
+              "--nanny-port 9001",
+              "--bokeh-port 9002"
+            ],
+            "Cpu": 1024,
+            "Essential": true,
+            "Image": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::Select": [
+                      4,
+                      {
+                        "Fn::Split": [
+                          ":",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":ecr:",
+                                {
+                                  "Ref": "AWS::Region"
+                                },
+                                ":",
+                                {
+                                  "Ref": "AWS::AccountId"
+                                },
+                                ":repository/",
+                                {
+                                  "Fn::GetAtt": [
+                                    "taskDefinitionWorkerMyWorkerImageAssetImageAdoptRepositoryBF896596",
+                                    "RepositoryName"
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  ".dkr.ecr.",
+                  {
+                    "Fn::Select": [
+                      3,
+                      {
+                        "Fn::Split": [
+                          ":",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":ecr:",
+                                {
+                                  "Ref": "AWS::Region"
+                                },
+                                ":",
+                                {
+                                  "Ref": "AWS::AccountId"
+                                },
+                                ":repository/",
+                                {
+                                  "Fn::GetAtt": [
+                                    "taskDefinitionWorkerMyWorkerImageAssetImageAdoptRepositoryBF896596",
+                                    "RepositoryName"
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  ".amazonaws.com/",
+                  {
+                    "Fn::GetAtt": [
+                      "taskDefinitionWorkerMyWorkerImageAssetImageAdoptRepositoryBF896596",
+                      "RepositoryName"
+                    ]
+                  },
+                  "@sha256:",
+                  {
+                    "Fn::Select": [
+                      1,
+                      {
+                        "Fn::Split": [
+                          "@sha256:",
+                          {
+                            "Ref": "taskDefinitionWorkerMyWorkerImageAssetImageImageName6EA10C1C"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            },
+            "Links": [],
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "SlogGroup1493DE30"
+                },
+                "awslogs-stream-prefix": "ecs",
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                }
+              }
+            },
+            "Memory": 2048,
+            "MemoryReservation": 2048,
+            "MountPoints": [],
+            "Name": "MyWorkerImage",
+            "PortMappings": [],
+            "Ulimits": [],
+            "VolumesFrom": []
+          }
+        ],
+        "Cpu": "1024",
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "ECSExecutionRoleA044C6CA",
+            "Arn"
+          ]
+        },
+        "Family": "Dask-Worker",
+        "Memory": "2048",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "TaskRoleArn": {
+          "Fn::GetAtt": [
+            "ECSExecutionRoleA044C6CA",
+            "Arn"
+          ]
+        },
+        "Volumes": []
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/taskDefinitionWorker/Resource"
+      }
+    },
+    "taskDefinitionWorkerMyWorkerImageAssetImageAdoptRepositoryBF896596": {
+      "Type": "Custom::ECRAdoptedRepository",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c52BE89E9",
+            "Arn"
+          ]
+        },
+        "RepositoryName": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::Split": [
+                "@sha256:",
+                {
+                  "Ref": "taskDefinitionWorkerMyWorkerImageAssetImageImageName6EA10C1C"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "DependsOn": [
+        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleDefaultPolicy6BC8737C",
+        "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cServiceRoleD788AA17"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/taskDefinitionWorker/MyWorkerImage/AssetImage/AdoptRepository/Resource/Default"
+      }
+    },
+    "MySG94FE69A8": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enable Scheduler ports access",
+        "GroupName": "DaskSecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "from 0.0.0.0/0:p1",
+            "FromPort": 8786,
+            "IpProtocol": "tcp",
+            "ToPort": 8789
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "from 0.0.0.0/0:p2",
+            "FromPort": 9000,
+            "IpProtocol": "tcp",
+            "ToPort": 9002
+          }
+        ],
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/MySG/Resource"
+      }
+    },
+    "DaskSchedulerService10C4F4A8": {
+      "Type": "AWS::ECS::Service",
+      "Properties": {
+        "TaskDefinition": {
+          "Ref": "taskDefinitionScheduler2F1AF045"
+        },
+        "Cluster": {
+          "Ref": "DaskCluster3EF020CE"
+        },
+        "DeploymentConfiguration": {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 100
+        },
+        "DesiredCount": 1,
+        "LaunchType": "FARGATE",
+        "LoadBalancers": [],
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "AssignPublicIp": "ENABLED",
+            "SecurityGroups": [
+              {
+                "Fn::GetAtt": [
+                  "MySG94FE69A8",
+                  "GroupId"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "Ref": "MyVpcPrivateSubnet1Subnet5057CF7E"
+              },
+              {
+                "Ref": "MyVpcPrivateSubnet2Subnet0040C983"
+              }
+            ]
+          }
+        },
+        "ServiceName": "Dask-Scheduler",
+        "ServiceRegistries": [
+          {
+            "RegistryArn": {
+              "Fn::GetAtt": [
+                "DaskSchedulerServiceCloudmapServiceE4FACA55",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/DaskSchedulerService/Service"
+      }
+    },
+    "DaskSchedulerServiceCloudmapServiceE4FACA55": {
+      "Type": "AWS::ServiceDiscovery::Service",
+      "Properties": {
+        "DnsConfig": {
+          "DnsRecords": [
+            {
+              "TTL": 60,
+              "Type": "A"
+            }
+          ],
+          "NamespaceId": {
+            "Fn::GetAtt": [
+              "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
+              "Id"
+            ]
+          },
+          "RoutingPolicy": "MULTIVALUE"
+        },
+        "HealthCheckCustomConfig": {
+          "FailureThreshold": 10
+        },
+        "Name": "Dask-Scheduler",
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
+            "Id"
+          ]
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/DaskSchedulerService/CloudmapService/Resource"
+      }
+    },
+    "DaskWorkerService14F1D300": {
+      "Type": "AWS::ECS::Service",
+      "Properties": {
+        "TaskDefinition": {
+          "Ref": "taskDefinitionWorkerA921838E"
+        },
+        "Cluster": {
+          "Ref": "DaskCluster3EF020CE"
+        },
+        "DeploymentConfiguration": {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 100
+        },
+        "DesiredCount": 1,
+        "LaunchType": "FARGATE",
+        "LoadBalancers": [],
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "AssignPublicIp": "ENABLED",
+            "SecurityGroups": [
+              {
+                "Fn::GetAtt": [
+                  "MySG94FE69A8",
+                  "GroupId"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "Ref": "MyVpcPrivateSubnet1Subnet5057CF7E"
+              },
+              {
+                "Ref": "MyVpcPrivateSubnet2Subnet0040C983"
+              }
+            ]
+          }
+        },
+        "ServiceName": "Dask-Worker",
+        "ServiceRegistries": [
+          {
+            "RegistryArn": {
+              "Fn::GetAtt": [
+                "DaskWorkerServiceCloudmapServiceD8D70A13",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/DaskWorkerService/Service"
+      }
+    },
+    "DaskWorkerServiceCloudmapServiceD8D70A13": {
+      "Type": "AWS::ServiceDiscovery::Service",
+      "Properties": {
+        "DnsConfig": {
+          "DnsRecords": [
+            {
+              "TTL": 60,
+              "Type": "A"
+            }
+          ],
+          "NamespaceId": {
+            "Fn::GetAtt": [
+              "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
+              "Id"
+            ]
+          },
+          "RoutingPolicy": "MULTIVALUE"
+        },
+        "HealthCheckCustomConfig": {
+          "FailureThreshold": 10
+        },
+        "Name": "Dask-Worker",
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
+            "Id"
+          ]
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/DaskWorkerService/CloudmapService/Resource"
+      }
+    },
+    "notebookAccessRoleFF9FFE8C": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "sagemaker.",
+                      {
+                        "Ref": "AWS::URLSuffix"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/notebookAccessRole/Resource"
+      }
+    },
+    "notebookAccessPolicyFF100858": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Allow",
+              "Resource": "*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "notebookAccessPolicy",
+        "Roles": [
+          {
+            "Ref": "notebookAccessRoleFF9FFE8C"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/notebookAccessPolicy/Resource"
+      }
+    },
+    "DaskNotebook": {
+      "Type": "AWS::SageMaker::NotebookInstance",
+      "Properties": {
+        "InstanceType": "ml.t2.medium",
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "notebookAccessRoleFF9FFE8C",
+            "Arn"
+          ]
+        },
+        "DirectInternetAccess": "Enabled",
+        "NotebookInstanceName": "DaskNotebook",
+        "RootAccess": "Enabled",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "MySG94FE69A8",
+              "GroupId"
+            ]
+          }
+        ],
+        "SubnetId": {
+          "Ref": "MyVpcPrivateSubnet1Subnet5057CF7E"
+        },
+        "VolumeSizeInGB": 5
+      },
+      "Metadata": {
+        "aws:cdk:path": "dask-fargate/DaskNotebook"
+      }
+    }
+  },
+  "Parameters": {
+    "taskDefinitionSchedulerMySchedulerImageAssetImageImageName1EEF85D5": {
+      "Type": "String",
+      "Description": "ECR repository name and tag asset \"dask-fargate/taskDefinitionScheduler/MySchedulerImage/AssetImage\""
+    },
+    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3Bucket92AB06B6": {
+      "Type": "String",
+      "Description": "S3 bucket for asset \"dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code\""
+    },
+    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeS3VersionKey393B7276": {
+      "Type": "String",
+      "Description": "S3 key for asset version \"dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code\""
+    },
+    "AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62cCodeArtifactHash8BCBAA49": {
+      "Type": "String",
+      "Description": "Artifact hash for asset \"dask-fargate/AdoptEcrRepositorydbc60defc59544bcaa5c28c95d68f62c/Code\""
+    },
+    "taskDefinitionWorkerMyWorkerImageAssetImageImageName6EA10C1C": {
+      "Type": "String",
+      "Description": "ECR repository name and tag asset \"dask-fargate/taskDefinitionWorker/MyWorkerImage/AssetImage\""
     }
   }
 }

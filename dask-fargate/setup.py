@@ -26,7 +26,8 @@ setuptools.setup(
     "aws-cdk.aws_ecr",
     "aws_cdk.aws_ecr_assets",
     "aws_cdk.aws_logs",
-    "aws_cdk.aws_iam"
+    "aws_cdk.aws_iam",
+    "aws_cdk.aws_sagemaker"
     ],
 
     python_requires=">=3.6",
