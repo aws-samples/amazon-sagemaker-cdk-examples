@@ -652,72 +652,6 @@
         "aws:cdk:path": "dask-fargate/DaskCluster/DefaultServiceDiscoveryNamespace/Resource"
       }
     },
-    "serviceRegistryScheduler88D30AA9": {
-      "Type": "AWS::ServiceDiscovery::Service",
-      "Properties": {
-        "DnsConfig": {
-          "DnsRecords": [
-            {
-              "TTL": 60,
-              "Type": "A"
-            }
-          ],
-          "NamespaceId": {
-            "Fn::GetAtt": [
-              "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
-              "Id"
-            ]
-          },
-          "RoutingPolicy": "MULTIVALUE"
-        },
-        "HealthCheckCustomConfig": {
-          "FailureThreshold": 10
-        },
-        "Name": "Dask-Scheduler",
-        "NamespaceId": {
-          "Fn::GetAtt": [
-            "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
-            "Id"
-          ]
-        }
-      },
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/serviceRegistryScheduler/Resource"
-      }
-    },
-    "workerRegistryScheduler35945B1F": {
-      "Type": "AWS::ServiceDiscovery::Service",
-      "Properties": {
-        "DnsConfig": {
-          "DnsRecords": [
-            {
-              "TTL": 60,
-              "Type": "A"
-            }
-          ],
-          "NamespaceId": {
-            "Fn::GetAtt": [
-              "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
-              "Id"
-            ]
-          },
-          "RoutingPolicy": "MULTIVALUE"
-        },
-        "HealthCheckCustomConfig": {
-          "FailureThreshold": 10
-        },
-        "Name": "Dask-Worker",
-        "NamespaceId": {
-          "Fn::GetAtt": [
-            "DaskClusterDefaultServiceDiscoveryNamespace30C3BAD1",
-            "Id"
-          ]
-        }
-      },
-      "Metadata": {
-        "aws:cdk:path": "dask-fargate/workerRegistryScheduler/Resource"
-      }
-    },
     "taskDefinitionScheduler2F1AF045": {
       "Type": "AWS::ECS::TaskDefinition",
       "Properties": {
@@ -1559,7 +1493,10 @@
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": "s3:*",
+              "Action": [
+                "s3:*",
+                "ecs:*"
+              ],
               "Effect": "Allow",
               "Resource": "*"
             }

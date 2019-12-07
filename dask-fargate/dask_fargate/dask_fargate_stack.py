@@ -62,17 +62,20 @@ class DaskFargateStack(core.Stack):
 
         nspace = cluster.add_default_cloud_map_namespace(name='local-dask',type=sd.NamespaceType.DNS_PRIVATE,vpc=vpc)
 
-        schedulerRegistry = sd.Service(self,'serviceRegistryScheduler', 
-            namespace=nspace,dns_ttl=core.Duration.seconds(60),
-            custom_health_check=sd.HealthCheckCustomConfig(failure_threshold=10),
-            name='Dask-Scheduler')
-       
-        # schedulerRegistry.register_ip_instance(id='serviceRegistryScheduler',ipv4='')
+        #TO DO: Use default namespace for cluster and use cmap options within fargate service
+        #Update: done
 
-        workerRegistry = sd.Service(self,'workerRegistryScheduler', 
-            namespace=nspace,dns_ttl=core.Duration.seconds(60),
-            custom_health_check=sd.HealthCheckCustomConfig(failure_threshold=10),
-            name='Dask-Worker')
+        # schedulerRegistry = sd.Service(self,'serviceRegistryScheduler', 
+        #     namespace=nspace,dns_ttl=core.Duration.seconds(60),
+        #     custom_health_check=sd.HealthCheckCustomConfig(failure_threshold=10),
+        #     name='Dask-Scheduler')
+       
+        # # schedulerRegistry.register_ip_instance(id='serviceRegistryScheduler',ipv4='')
+
+        # workerRegistry = sd.Service(self,'workerRegistryScheduler', 
+        #     namespace=nspace,dns_ttl=core.Duration.seconds(60),
+        #     custom_health_check=sd.HealthCheckCustomConfig(failure_threshold=10),
+        #     name='Dask-Worker')
        
 
         # -------------------- Add scheduler task ------------------------
@@ -196,7 +199,7 @@ class DaskFargateStack(core.Stack):
             self,
             "notebookAccessPolicy",
             policy_name = "notebookAccessPolicy",
-            statements = [iam_.PolicyStatement(actions = ['s3:*',], resources=['*',]),]).attach_to_role(smRole)
+            statements = [iam_.PolicyStatement(actions = ['s3:*','ecs:*'], resources=['*',]),]).attach_to_role(smRole)
 
 
         notebook = sagemaker_.CfnNotebookInstance(
