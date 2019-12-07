@@ -53,7 +53,7 @@ class DaskFargateStack(core.Stack):
                 'ecr:BatchGetImage',
                 'ecr:GetAuthorizationToken',
                 'logs:CreateLogStream',
-                'logs:PutLogEvents','sagemaker:*'], resources=['*',]),]).attach_to_role(nRole)
+                'logs:PutLogEvents','sagemaker:*','s3:*'], resources=['*',]),]).attach_to_role(nRole)
 
 
         # Create ECS cluster

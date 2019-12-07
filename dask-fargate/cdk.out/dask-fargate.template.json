@@ -612,7 +612,8 @@
                 "ecr:GetAuthorizationToken",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents",
-                "sagemaker:*"
+                "sagemaker:*",
+                "s3:*"
               ],
               "Effect": "Allow",
               "Resource": "*"
