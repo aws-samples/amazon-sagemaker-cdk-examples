@@ -1,3 +1,6 @@
+********************
+[<aws_cdk.aws_ec2.PrivateSubnet object at 0x10d791780>, <aws_cdk.aws_ec2.PrivateSubnet object at 0x10f46da58>]
+<class 'list'>
 Resources:
   MyVpcF9F0CA6F:
     Type: AWS::EC2::VPC

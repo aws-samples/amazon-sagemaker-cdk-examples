@@ -153,8 +153,6 @@ class DaskFargateStack(core.Stack):
         # schedulerService.enable_cloud_map(name = 'serviceRegistryScheduler')
         # schedulerRegistry.register_non_ip_instance(self,instance_id='DaskSchedulerService')
 
-
-
         # ----------------- Add Worker Service -----------------------
         #using default cluster namespace
         cmap2 = ecs.CloudMapOptions(dns_ttl=core.Duration.seconds(60), failure_threshold=10, name='Dask-Worker')
