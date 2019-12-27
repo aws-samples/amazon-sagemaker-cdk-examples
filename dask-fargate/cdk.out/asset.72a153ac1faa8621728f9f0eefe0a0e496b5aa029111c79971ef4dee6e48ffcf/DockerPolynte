@@ -1,0 +1,12 @@
+FROM continuumio/miniconda3:4.3.14
+
+# Dumb init2
+RUN wget -O /usr/local/bin/dumb-init2 https://github.com/polynote/polynote/releases/download/0.2.14/polynote-dist-2.12.tar.gz
+
+RUN tar -zxvpf /usr/local/bin/dumb-init2/polynote-dist-2.12.tar.gz
+
+RUN chmod +x /usr/local/bin/dumb-init2
+
+RUN conda install jep jedi pyspark virtualenv
+
+ENTRYPOINT ["/usr/local/bin/dumb-init2", "./polynote.py"]

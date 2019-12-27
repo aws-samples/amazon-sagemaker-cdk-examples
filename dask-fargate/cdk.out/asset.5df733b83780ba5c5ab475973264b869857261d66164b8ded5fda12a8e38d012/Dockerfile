@@ -8,19 +8,17 @@ RUN conda update conda && conda install "conda=4.4.7"
 RUN conda install --yes \
     python-blosc \
     cytoolz \
-    dask  \
+#    dask  \
     distributed \
     nomkl \
     numpy \
-    pandas \
+#    pandas \
     s3fs \
     && conda clean -tipsy
 
-#RUN pip install modin[dask]
+RUN pip install modin[dask]
 
-#RUN export MODIN_ENGINE=dask
-
-RUN pip install dask-ml[complete]
+RUN export MODIN_ENGINE=dask
 
 COPY prepare.sh /usr/bin/prepare.sh
 RUN chmod +x /usr/bin/prepare.sh

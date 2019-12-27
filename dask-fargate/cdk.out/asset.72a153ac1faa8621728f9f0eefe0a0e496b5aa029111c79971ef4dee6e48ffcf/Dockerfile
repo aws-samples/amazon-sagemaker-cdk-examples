@@ -20,8 +20,6 @@ RUN conda install --yes \
 
 #RUN export MODIN_ENGINE=dask
 
-RUN pip install dask-ml[complete]
-
 COPY prepare.sh /usr/bin/prepare.sh
 RUN chmod +x /usr/bin/prepare.sh
 

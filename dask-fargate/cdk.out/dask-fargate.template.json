@@ -661,7 +661,7 @@
             "Command": [
               "dask-scheduler"
             ],
-            "Cpu": 1024,
+            "Cpu": 4096,
             "Essential": true,
             "Image": {
               "Fn::Join": [
@@ -777,8 +777,8 @@
                 }
               }
             },
-            "Memory": 2048,
-            "MemoryReservation": 2048,
+            "Memory": 8192,
+            "MemoryReservation": 8192,
             "MountPoints": [],
             "Name": "MySchedulerImage",
             "PortMappings": [],
@@ -786,7 +786,7 @@
             "VolumesFrom": []
           }
         ],
-        "Cpu": "1024",
+        "Cpu": "4096",
         "ExecutionRoleArn": {
           "Fn::GetAtt": [
             "ECSExecutionRoleA044C6CA",
@@ -794,7 +794,7 @@
           ]
         },
         "Family": "Dask-Scheduler",
-        "Memory": "2048",
+        "Memory": "8192",
         "NetworkMode": "awsvpc",
         "RequiresCompatibilities": [
           "FARGATE"
@@ -1067,7 +1067,7 @@
               "--nanny-port 9001",
               "--bokeh-port 9002"
             ],
-            "Cpu": 1024,
+            "Cpu": 4096,
             "Essential": true,
             "Image": {
               "Fn::Join": [
@@ -1183,8 +1183,8 @@
                 }
               }
             },
-            "Memory": 2048,
-            "MemoryReservation": 2048,
+            "Memory": 8192,
+            "MemoryReservation": 8192,
             "MountPoints": [],
             "Name": "MyWorkerImage",
             "PortMappings": [],
@@ -1192,7 +1192,7 @@
             "VolumesFrom": []
           }
         ],
-        "Cpu": "1024",
+        "Cpu": "4096",
         "ExecutionRoleArn": {
           "Fn::GetAtt": [
             "ECSExecutionRoleA044C6CA",
@@ -1200,7 +1200,7 @@
           ]
         },
         "Family": "Dask-Worker",
-        "Memory": "2048",
+        "Memory": "8192",
         "NetworkMode": "awsvpc",
         "RequiresCompatibilities": [
           "FARGATE"
@@ -1315,10 +1315,10 @@
             ],
             "Subnets": [
               {
-                "Ref": "MyVpcPrivateSubnet1Subnet5057CF7E"
+                "Ref": "MyVpcPublicSubnet1SubnetF6608456"
               },
               {
-                "Ref": "MyVpcPrivateSubnet2Subnet0040C983"
+                "Ref": "MyVpcPublicSubnet2Subnet492B6BFB"
               }
             ]
           }
@@ -1401,10 +1401,10 @@
             ],
             "Subnets": [
               {
-                "Ref": "MyVpcPrivateSubnet1Subnet5057CF7E"
+                "Ref": "MyVpcPublicSubnet1SubnetF6608456"
               },
               {
-                "Ref": "MyVpcPrivateSubnet2Subnet0040C983"
+                "Ref": "MyVpcPublicSubnet2Subnet492B6BFB"
               }
             ]
           }
@@ -1525,6 +1525,7 @@
             "Arn"
           ]
         },
+        "DefaultCodeRepository": "https://github.com/w601sxs/dask-examples.git",
         "DirectInternetAccess": "Enabled",
         "NotebookInstanceName": "DaskNotebook",
         "RootAccess": "Enabled",
@@ -1539,7 +1540,7 @@
         "SubnetId": {
           "Ref": "MyVpcPrivateSubnet1Subnet5057CF7E"
         },
-        "VolumeSizeInGB": 5
+        "VolumeSizeInGB": 50
       },
       "Metadata": {
         "aws:cdk:path": "dask-fargate/DaskNotebook"

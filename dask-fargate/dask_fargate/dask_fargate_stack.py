@@ -15,10 +15,10 @@ class DaskFargateStack(core.Stack):
 
         # CONTAINER_IMAGE = 'daskdev/dask:0.19.4'
         # if use_rapids:
-        # 	CONTAINER_IMAGE = 'rapidsai/rapidsai:latest'
+        #   CONTAINER_IMAGE = 'rapidsai/rapidsai:latest'
 
         # if use_notebook:
-        # 	CONTAINER_IMAGE = 'daskdev/dask-notebook:latest'
+        #   CONTAINER_IMAGE = 'daskdev/dask-notebook:latest'
 
         #TODO : Create ECR repository
         #Update: Not required sunce ecs.ContainerImage already creates and pushes using same asset
@@ -81,20 +81,21 @@ class DaskFargateStack(core.Stack):
         # -------------------- Add scheduler task ------------------------
         schedulerTask = ecs.TaskDefinition(self, 'taskDefinitionScheduler',
             compatibility=ecs.Compatibility.FARGATE,
-            cpu='1024', memory_mib='2048',
+            cpu='4096', memory_mib='8192',
             network_mode=ecs.NetworkMode.AWS_VPC,
             placement_constraints=None, execution_role=nRole,
             family='Dask-Scheduler', task_role=nRole)
 
         schedulerTask.add_container('MySchedulerImage', image=dockercontainer,
-            command=['dask-scheduler'], cpu=1024, essential=True,
+            command=['dask-scheduler'], cpu=4096, essential=True,
             logging=ecs.LogDriver.aws_logs(stream_prefix='ecs',log_group = s_logs),
-            memory_limit_mib=2048, memory_reservation_mib=2048)
+            memory_limit_mib=8192, memory_reservation_mib=8192)
+
 
         # -------------------- Add worker task -----------------------------
         workerTask = ecs.TaskDefinition(self, 'taskDefinitionWorker',
             compatibility=ecs.Compatibility.FARGATE,
-            cpu='1024', memory_mib='2048',
+            cpu='4096', memory_mib='8192',
             network_mode=ecs.NetworkMode.AWS_VPC,
             placement_constraints=None, execution_role=nRole,
             family='Dask-Worker', task_role=nRole)
@@ -102,9 +103,9 @@ class DaskFargateStack(core.Stack):
         workerTask.add_container('MyWorkerImage', image=dockercontainer,
             command=['dask-worker','dask-scheduler.local-dask:8786','--memory-limit 1800MB',
             '--worker-port 9000','--nanny-port 9001','--bokeh-port 9002'], 
-            cpu=1024, essential=True,
+            cpu=4096, essential=True,
             logging=ecs.LogDriver.aws_logs(stream_prefix='ecs',log_group = s_logs),
-            memory_limit_mib=2048, memory_reservation_mib=2048)
+            memory_limit_mib=8192, memory_reservation_mib=8192)
 
         # Task security group
         sg = ec2.SecurityGroup(self, 'MySG',
@@ -146,7 +147,8 @@ class DaskFargateStack(core.Stack):
         schedulerService = ecs.FargateService(self, 'DaskSchedulerService',
             task_definition=schedulerTask,
             assign_public_ip=True,security_group=sg,
-            vpc_subnets=subnets, cluster=cluster,desired_count=1,
+            #vpc_subnets=subnets, 
+        cluster=cluster,desired_count=1,
             max_healthy_percent=200, min_healthy_percent=100,
             service_name='Dask-Scheduler',cloud_map_options=cmap1)
 
@@ -161,7 +163,8 @@ class DaskFargateStack(core.Stack):
         workerService = ecs.FargateService(self, 'DaskWorkerService',
             task_definition=workerTask,
             assign_public_ip=True,security_group=sg,
-            vpc_subnets=subnets, cluster=cluster,desired_count=1,
+            #vpc_subnets=subnets, 
+        cluster=cluster,desired_count=1,
             max_healthy_percent=200, min_healthy_percent=100,
             service_name='Dask-Worker',cloud_map_options=cmap2)
 
@@ -204,10 +207,11 @@ class DaskFargateStack(core.Stack):
                 self,
                 'DaskNotebook',
                 instance_type = 'ml.t2.medium',
-                volume_size_in_gb = 5,
+                volume_size_in_gb = 50,
                 security_group_ids = [sg.security_group_id],
                 subnet_id = subnets[0].subnet_id,
                 notebook_instance_name = 'DaskNotebook',
                 role_arn = smRole.role_arn,
                 root_access='Enabled',
-                direct_internet_access='Enabled')
+                direct_internet_access='Enabled',
+                default_code_repository='https://github.com/w601sxs/dask-examples.git')
