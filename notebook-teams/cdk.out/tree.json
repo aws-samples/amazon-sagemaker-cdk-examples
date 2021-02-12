@@ -1,0 +1,781 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree"
+      },
+      "multinotebookefs": {
+        "id": "multinotebookefs",
+        "path": "multinotebookefs",
+        "children": {
+          "VPC": {
+            "id": "VPC",
+            "path": "multinotebookefs/VPC",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "multinotebookefs/VPC/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::VPC",
+                  "aws:cdk:cloudformation:props": {
+                    "cidrBlock": "10.10.0.0/16",
+                    "enableDnsHostnames": true,
+                    "enableDnsSupport": true,
+                    "instanceTenancy": "default",
+                    "tags": [
+                      {
+                        "key": "Name",
+                        "value": "multinotebookefs/VPC"
+                      }
+                    ]
+                  }
+                }
+              },
+              "PublicSubnet1": {
+                "id": "PublicSubnet1",
+                "path": "multinotebookefs/VPC/PublicSubnet1",
+                "children": {
+                  "Subnet": {
+                    "id": "Subnet",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/Subnet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
+                      "aws:cdk:cloudformation:props": {
+                        "cidrBlock": "10.10.0.0/24",
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "availabilityZone": {
+                          "Fn::Select": [
+                            0,
+                            {
+                              "Fn::GetAZs": ""
+                            }
+                          ]
+                        },
+                        "mapPublicIpOnLaunch": true,
+                        "tags": [
+                          {
+                            "key": "aws-cdk:subnet-name",
+                            "value": "Public"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-type",
+                            "value": "Public"
+                          },
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PublicSubnet1"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Acl": {
+                    "id": "Acl",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/Acl"
+                  },
+                  "RouteTable": {
+                    "id": "RouteTable",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/RouteTable",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
+                      "aws:cdk:cloudformation:props": {
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PublicSubnet1"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "RouteTableAssociation": {
+                    "id": "RouteTableAssociation",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/RouteTableAssociation",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPublicSubnet1RouteTableFEE4B781"
+                        },
+                        "subnetId": {
+                          "Ref": "VPCPublicSubnet1SubnetB4246D30"
+                        }
+                      }
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/DefaultRoute",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Route",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPublicSubnet1RouteTableFEE4B781"
+                        },
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "gatewayId": {
+                          "Ref": "VPCIGWB7E252D3"
+                        }
+                      }
+                    }
+                  },
+                  "EIP": {
+                    "id": "EIP",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/EIP",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::EIP",
+                      "aws:cdk:cloudformation:props": {
+                        "domain": "vpc",
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PublicSubnet1"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "NATGateway": {
+                    "id": "NATGateway",
+                    "path": "multinotebookefs/VPC/PublicSubnet1/NATGateway",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::NatGateway",
+                      "aws:cdk:cloudformation:props": {
+                        "allocationId": {
+                          "Fn::GetAtt": [
+                            "VPCPublicSubnet1EIP6AD938E8",
+                            "AllocationId"
+                          ]
+                        },
+                        "subnetId": {
+                          "Ref": "VPCPublicSubnet1SubnetB4246D30"
+                        },
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PublicSubnet1"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "PublicSubnet2": {
+                "id": "PublicSubnet2",
+                "path": "multinotebookefs/VPC/PublicSubnet2",
+                "children": {
+                  "Subnet": {
+                    "id": "Subnet",
+                    "path": "multinotebookefs/VPC/PublicSubnet2/Subnet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
+                      "aws:cdk:cloudformation:props": {
+                        "cidrBlock": "10.10.1.0/24",
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "availabilityZone": {
+                          "Fn::Select": [
+                            1,
+                            {
+                              "Fn::GetAZs": ""
+                            }
+                          ]
+                        },
+                        "mapPublicIpOnLaunch": true,
+                        "tags": [
+                          {
+                            "key": "aws-cdk:subnet-name",
+                            "value": "Public"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-type",
+                            "value": "Public"
+                          },
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PublicSubnet2"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Acl": {
+                    "id": "Acl",
+                    "path": "multinotebookefs/VPC/PublicSubnet2/Acl"
+                  },
+                  "RouteTable": {
+                    "id": "RouteTable",
+                    "path": "multinotebookefs/VPC/PublicSubnet2/RouteTable",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
+                      "aws:cdk:cloudformation:props": {
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PublicSubnet2"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "RouteTableAssociation": {
+                    "id": "RouteTableAssociation",
+                    "path": "multinotebookefs/VPC/PublicSubnet2/RouteTableAssociation",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPublicSubnet2RouteTable6F1A15F1"
+                        },
+                        "subnetId": {
+                          "Ref": "VPCPublicSubnet2Subnet74179F39"
+                        }
+                      }
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "multinotebookefs/VPC/PublicSubnet2/DefaultRoute",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Route",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPublicSubnet2RouteTable6F1A15F1"
+                        },
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "gatewayId": {
+                          "Ref": "VPCIGWB7E252D3"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "PrivateSubnet1": {
+                "id": "PrivateSubnet1",
+                "path": "multinotebookefs/VPC/PrivateSubnet1",
+                "children": {
+                  "Subnet": {
+                    "id": "Subnet",
+                    "path": "multinotebookefs/VPC/PrivateSubnet1/Subnet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
+                      "aws:cdk:cloudformation:props": {
+                        "cidrBlock": "10.10.2.0/24",
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "availabilityZone": {
+                          "Fn::Select": [
+                            0,
+                            {
+                              "Fn::GetAZs": ""
+                            }
+                          ]
+                        },
+                        "mapPublicIpOnLaunch": false,
+                        "tags": [
+                          {
+                            "key": "aws-cdk:subnet-name",
+                            "value": "Private"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-type",
+                            "value": "Private"
+                          },
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PrivateSubnet1"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Acl": {
+                    "id": "Acl",
+                    "path": "multinotebookefs/VPC/PrivateSubnet1/Acl"
+                  },
+                  "RouteTable": {
+                    "id": "RouteTable",
+                    "path": "multinotebookefs/VPC/PrivateSubnet1/RouteTable",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
+                      "aws:cdk:cloudformation:props": {
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PrivateSubnet1"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "RouteTableAssociation": {
+                    "id": "RouteTableAssociation",
+                    "path": "multinotebookefs/VPC/PrivateSubnet1/RouteTableAssociation",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPrivateSubnet1RouteTableBE8A6027"
+                        },
+                        "subnetId": {
+                          "Ref": "VPCPrivateSubnet1Subnet8BCA10E0"
+                        }
+                      }
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "multinotebookefs/VPC/PrivateSubnet1/DefaultRoute",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Route",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPrivateSubnet1RouteTableBE8A6027"
+                        },
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "natGatewayId": {
+                          "Ref": "VPCPublicSubnet1NATGatewayE0556630"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "PrivateSubnet2": {
+                "id": "PrivateSubnet2",
+                "path": "multinotebookefs/VPC/PrivateSubnet2",
+                "children": {
+                  "Subnet": {
+                    "id": "Subnet",
+                    "path": "multinotebookefs/VPC/PrivateSubnet2/Subnet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
+                      "aws:cdk:cloudformation:props": {
+                        "cidrBlock": "10.10.3.0/24",
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "availabilityZone": {
+                          "Fn::Select": [
+                            1,
+                            {
+                              "Fn::GetAZs": ""
+                            }
+                          ]
+                        },
+                        "mapPublicIpOnLaunch": false,
+                        "tags": [
+                          {
+                            "key": "aws-cdk:subnet-name",
+                            "value": "Private"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-type",
+                            "value": "Private"
+                          },
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PrivateSubnet2"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Acl": {
+                    "id": "Acl",
+                    "path": "multinotebookefs/VPC/PrivateSubnet2/Acl"
+                  },
+                  "RouteTable": {
+                    "id": "RouteTable",
+                    "path": "multinotebookefs/VPC/PrivateSubnet2/RouteTable",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
+                      "aws:cdk:cloudformation:props": {
+                        "vpcId": {
+                          "Ref": "VPCB9E5F0B4"
+                        },
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "multinotebookefs/VPC/PrivateSubnet2"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "RouteTableAssociation": {
+                    "id": "RouteTableAssociation",
+                    "path": "multinotebookefs/VPC/PrivateSubnet2/RouteTableAssociation",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPrivateSubnet2RouteTable0A19E10E"
+                        },
+                        "subnetId": {
+                          "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A"
+                        }
+                      }
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "multinotebookefs/VPC/PrivateSubnet2/DefaultRoute",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Route",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": {
+                          "Ref": "VPCPrivateSubnet2RouteTable0A19E10E"
+                        },
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "natGatewayId": {
+                          "Ref": "VPCPublicSubnet1NATGatewayE0556630"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "IGW": {
+                "id": "IGW",
+                "path": "multinotebookefs/VPC/IGW",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::InternetGateway",
+                  "aws:cdk:cloudformation:props": {
+                    "tags": [
+                      {
+                        "key": "Name",
+                        "value": "multinotebookefs/VPC"
+                      }
+                    ]
+                  }
+                }
+              },
+              "VPCGW": {
+                "id": "VPCGW",
+                "path": "multinotebookefs/VPC/VPCGW",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::VPCGatewayAttachment",
+                  "aws:cdk:cloudformation:props": {
+                    "vpcId": {
+                      "Ref": "VPCB9E5F0B4"
+                    },
+                    "internetGatewayId": {
+                      "Ref": "VPCIGWB7E252D3"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "securityGroup": {
+            "id": "securityGroup",
+            "path": "multinotebookefs/securityGroup"
+          },
+          "commonEFS4Notebooks": {
+            "id": "commonEFS4Notebooks",
+            "path": "multinotebookefs/commonEFS4Notebooks",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "multinotebookefs/commonEFS4Notebooks/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EFS::FileSystem",
+                  "aws:cdk:cloudformation:props": {
+                    "backupPolicy": {
+                      "status": "ENABLED"
+                    },
+                    "encrypted": true,
+                    "fileSystemTags": [
+                      {
+                        "key": "Name",
+                        "value": "multinotebookefs/commonEFS4Notebooks"
+                      }
+                    ],
+                    "performanceMode": "maxIO",
+                    "throughputMode": "bursting"
+                  }
+                }
+              },
+              "EfsMountTarget1": {
+                "id": "EfsMountTarget1",
+                "path": "multinotebookefs/commonEFS4Notebooks/EfsMountTarget1",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EFS::MountTarget",
+                  "aws:cdk:cloudformation:props": {
+                    "fileSystemId": {
+                      "Ref": "commonEFS4NotebooksF7CED3FB"
+                    },
+                    "securityGroups": [
+                      {
+                        "Fn::GetAtt": [
+                          "VPCB9E5F0B4",
+                          "DefaultSecurityGroup"
+                        ]
+                      }
+                    ],
+                    "subnetId": {
+                      "Ref": "VPCPrivateSubnet1Subnet8BCA10E0"
+                    }
+                  }
+                }
+              },
+              "EfsMountTarget2": {
+                "id": "EfsMountTarget2",
+                "path": "multinotebookefs/commonEFS4Notebooks/EfsMountTarget2",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EFS::MountTarget",
+                  "aws:cdk:cloudformation:props": {
+                    "fileSystemId": {
+                      "Ref": "commonEFS4NotebooksF7CED3FB"
+                    },
+                    "securityGroups": [
+                      {
+                        "Fn::GetAtt": [
+                          "VPCB9E5F0B4",
+                          "DefaultSecurityGroup"
+                        ]
+                      }
+                    ],
+                    "subnetId": {
+                      "Ref": "VPCPrivateSubnet2SubnetCFCDAA7A"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "notebookAccessRole": {
+            "id": "notebookAccessRole",
+            "path": "multinotebookefs/notebookAccessRole",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "multinotebookefs/notebookAccessRole/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                  "aws:cdk:cloudformation:props": {
+                    "assumeRolePolicyDocument": {
+                      "Statement": [
+                        {
+                          "Action": "sts:AssumeRole",
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "sagemaker.amazonaws.com"
+                          }
+                        }
+                      ],
+                      "Version": "2012-10-17"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "notebookAccessPolicy": {
+            "id": "notebookAccessPolicy",
+            "path": "multinotebookefs/notebookAccessPolicy",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "multinotebookefs/notebookAccessPolicy/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                  "aws:cdk:cloudformation:props": {
+                    "policyDocument": {
+                      "Statement": [
+                        {
+                          "Action": "s3:*",
+                          "Effect": "Allow",
+                          "Resource": "*"
+                        }
+                      ],
+                      "Version": "2012-10-17"
+                    },
+                    "policyName": "notebookAccessPolicy",
+                    "roles": [
+                      {
+                        "Ref": "notebookAccessRoleFF9FFE8C"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "LifeCycleConfig": {
+            "id": "LifeCycleConfig",
+            "path": "multinotebookefs/LifeCycleConfig",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::SageMaker::NotebookInstanceLifecycleConfig",
+              "aws:cdk:cloudformation:props": {
+                "notebookInstanceLifecycleConfigName": "CDKLifeCycleConfig",
+                "onStart": [
+                  {
+                    "content": {
+                      "Fn::Base64": {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "#!/bin/bash\n\ncd /home/ec2-user/SageMaker/\n\nmkdir -p efs\n\nsudo yum install -y amazon-efs-utils\n\nsudo mount -t efs ",
+                            {
+                              "Ref": "commonEFS4NotebooksF7CED3FB"
+                            },
+                            ":/ efs\n\nsudo chmod go+rw ./efs"
+                          ]
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "CDK-Notebook-Instance-User-0": {
+            "id": "CDK-Notebook-Instance-User-0",
+            "path": "multinotebookefs/CDK-Notebook-Instance-User-0",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::SageMaker::NotebookInstance",
+              "aws:cdk:cloudformation:props": {
+                "instanceType": "ml.t2.medium",
+                "roleArn": {
+                  "Fn::GetAtt": [
+                    "notebookAccessRoleFF9FFE8C",
+                    "Arn"
+                  ]
+                },
+                "lifecycleConfigName": "CDKLifeCycleConfig",
+                "notebookInstanceName": "CDK-Notebook-Instance-User-0",
+                "securityGroupIds": [
+                  {
+                    "Fn::GetAtt": [
+                      "VPCB9E5F0B4",
+                      "DefaultSecurityGroup"
+                    ]
+                  }
+                ],
+                "subnetId": {
+                  "Ref": "VPCPrivateSubnet1Subnet8BCA10E0"
+                },
+                "volumeSizeInGb": 5
+              }
+            }
+          },
+          "CDK-Notebook-Instance-User-1": {
+            "id": "CDK-Notebook-Instance-User-1",
+            "path": "multinotebookefs/CDK-Notebook-Instance-User-1",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::SageMaker::NotebookInstance",
+              "aws:cdk:cloudformation:props": {
+                "instanceType": "ml.t2.medium",
+                "roleArn": {
+                  "Fn::GetAtt": [
+                    "notebookAccessRoleFF9FFE8C",
+                    "Arn"
+                  ]
+                },
+                "lifecycleConfigName": "CDKLifeCycleConfig",
+                "notebookInstanceName": "CDK-Notebook-Instance-User-1",
+                "securityGroupIds": [
+                  {
+                    "Fn::GetAtt": [
+                      "VPCB9E5F0B4",
+                      "DefaultSecurityGroup"
+                    ]
+                  }
+                ],
+                "subnetId": {
+                  "Ref": "VPCPrivateSubnet1Subnet8BCA10E0"
+                },
+                "volumeSizeInGb": 5
+              }
+            }
+          },
+          "CDK-Notebook-Instance-User-2": {
+            "id": "CDK-Notebook-Instance-User-2",
+            "path": "multinotebookefs/CDK-Notebook-Instance-User-2",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::SageMaker::NotebookInstance",
+              "aws:cdk:cloudformation:props": {
+                "instanceType": "ml.t2.medium",
+                "roleArn": {
+                  "Fn::GetAtt": [
+                    "notebookAccessRoleFF9FFE8C",
+                    "Arn"
+                  ]
+                },
+                "lifecycleConfigName": "CDKLifeCycleConfig",
+                "notebookInstanceName": "CDK-Notebook-Instance-User-2",
+                "securityGroupIds": [
+                  {
+                    "Fn::GetAtt": [
+                      "VPCB9E5F0B4",
+                      "DefaultSecurityGroup"
+                    ]
+                  }
+                ],
+                "subnetId": {
+                  "Ref": "VPCPrivateSubnet1Subnet8BCA10E0"
+                },
+                "volumeSizeInGb": 5
+              }
+            }
+          },
+          "VPC_id": {
+            "id": "VPC_id",
+            "path": "multinotebookefs/VPC_id"
+          },
+          "EFS_id": {
+            "id": "EFS_id",
+            "path": "multinotebookefs/EFS_id"
+          },
+          "NotebookInstance_0": {
+            "id": "NotebookInstance_0",
+            "path": "multinotebookefs/NotebookInstance_0"
+          },
+          "NotebookInstance_1": {
+            "id": "NotebookInstance_1",
+            "path": "multinotebookefs/NotebookInstance_1"
+          },
+          "NotebookInstance_2": {
+            "id": "NotebookInstance_2",
+            "path": "multinotebookefs/NotebookInstance_2"
+          },
+          "CDKMetadata": {
+            "id": "CDKMetadata",
+            "path": "multinotebookefs/CDKMetadata",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "multinotebookefs/CDKMetadata/Default"
+              },
+              "Condition": {
+                "id": "Condition",
+                "path": "multinotebookefs/CDKMetadata/Condition"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

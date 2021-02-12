@@ -1,0 +1,4 @@
+aws-cdk.core==1.77.0
+aws-cdk.aws-sagemaker==1.77.0
+aws-cdk.aws-efs==1.77.0
+aws-cdk.aws-iam==1.77.0

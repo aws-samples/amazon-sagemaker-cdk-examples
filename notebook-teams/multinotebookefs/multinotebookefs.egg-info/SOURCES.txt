@@ -1,0 +1,7 @@
+README.md
+setup.py
+multinotebookefs/multinotebookefs.egg-info/PKG-INFO
+multinotebookefs/multinotebookefs.egg-info/SOURCES.txt
+multinotebookefs/multinotebookefs.egg-info/dependency_links.txt
+multinotebookefs/multinotebookefs.egg-info/requires.txt
+multinotebookefs/multinotebookefs.egg-info/top_level.txt
