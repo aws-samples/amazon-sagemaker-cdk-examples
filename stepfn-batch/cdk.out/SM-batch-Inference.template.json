@@ -81,7 +81,7 @@
             "Arn"
           ]
         },
-        "Runtime": "python3.7",
+        "Runtime": "python3.10",
         "Environment": {
           "Variables": {
             "transform_job_name": "xgboost-batch-transform",
@@ -185,7 +185,7 @@
             "Arn"
           ]
         },
-        "Runtime": "python3.7",
+        "Runtime": "python3.10",
         "Environment": {
           "Variables": {
             "model_name": "xgboost-2019-06-18-19-03-13-823",

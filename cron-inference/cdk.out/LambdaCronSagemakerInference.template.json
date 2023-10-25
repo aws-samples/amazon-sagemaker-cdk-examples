@@ -86,7 +86,7 @@
             "Arn"
           ]
         },
-        "Runtime": "python3.7",
+        "Runtime": "python3.10",
         "Environment": {
           "Variables": {
             "endpoint_name": "DEMO-videogames-xgboost-2019-06-18-18-58-35-771",
